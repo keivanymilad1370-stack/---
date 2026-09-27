@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>دفتر من</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#12161C; --surface:#1A2029; --surface2:#212A34; --line:#2A323D;
+  --ink:#E9E6DF; --ink-dim:#8E97A1;
+  --gold:#C9A15C; --gold-dim:#8a744a; --teal:#4F9490; --brick:#B5544A;
+  --family:#B27BA6; --routine:#7C93A8; --learn:#7D8FE0; --radius:2px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%), var(--bg); color:var(--ink); font-family:'Vazirmatn', sans-serif; min-height:100vh;}
+.app{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+.masthead{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid var(--gold-dim); padding-bottom:16px; margin-bottom:22px; flex-wrap:wrap; gap:14px;}
+.masthead h1{font-family:'Spectral', serif; font-weight:600; font-size:30px; margin:0; letter-spacing:0.5px;}
+.masthead .sub{font-family:'IBM Plex Mono', monospace; color:var(--ink-dim); font-size:12px; margin-top:4px;}
+.masthead .date-box{font-family:'IBM Plex Mono', monospace; text-align:left; color:var(--gold); font-size:13px;}
+
+.signature{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px 8px; margin-bottom:24px; position:relative; overflow:hidden;}
+.signature .row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; flex-wrap:wrap; gap:8px;}
+.signature .streak{font-family:'Spectral', serif; font-size:22px; color:var(--gold);}
+.signature .streak b{font-family:'IBM Plex Mono', monospace; font-size:26px;}
+.signature .note{font-size:12px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace;}
+#curveCanvas{width:100%; height:120px; display:block;}
+
+.tabs{display:flex; gap:4px; margin-bottom:0; flex-wrap:wrap; border-bottom:1px solid var(--line);}
+.tab-btn{font-family:'Spectral', serif; font-size:14px; color:var(--ink-dim); background:var(--surface); border:1px solid var(--line); border-bottom:none; padding:9px 14px 8px; cursor:pointer; border-radius:4px 4px 0 0; position:relative; top:1px;}
+.tab-btn.active{background:var(--surface2); color:var(--ink); border-color:var(--gold-dim); border-bottom:2px solid var(--surface2);}
+.tab-btn:hover{color:var(--ink);}
+
+.panel{background:var(--surface2); border:1px solid var(--line); border-top:none; padding:26px 24px; border-radius:0 0 4px 4px;}
+.panel h2{font-family:'Spectral', serif; font-size:20px; margin:0 0 4px; font-weight:600;}
+.panel .desc{color:var(--ink-dim); font-size:13px; margin-bottom:20px; line-height:1.9;}
+
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:820px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+.card h3{font-family:'Spectral',serif; font-size:15px; margin:0 0 10px; color:var(--gold); font-weight:600;}
+
+.cat-group{margin-bottom:18px;}
+.cat-group:last-child{margin-bottom:0;}
+.cat-heading{display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid var(--line);}
+.cat-dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+.cat-badge{font-family:'IBM Plex Mono',monospace; font-size:9.5px; padding:1px 8px; border-radius:8px; border:1px solid; display:inline-block;}
+
+.habit-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed var(--line);}
+.habit-row:last-child{border-bottom:none;}
+.habit-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;}
+.habit-row label{flex:1; font-size:14px; cursor:pointer;}
+.habit-row .del{color:var(--brick); cursor:pointer; font-size:12px; opacity:0.6; font-family:'IBM Plex Mono',monospace;}
+.habit-row .del:hover{opacity:1;}
+.done-text{text-decoration:line-through; opacity:0.5;}
+
+.add-row{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+.add-row input[type=text]{flex:1; min-width:140px;}
+input[type=text], input[type=number], input[type=date], textarea, select{background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:8px 10px; border-radius:var(--radius); font-family:'Vazirmatn',sans-serif; font-size:13px;}
+input:focus, textarea:focus, select:focus{outline:1px solid var(--gold); border-color:var(--gold);}
+textarea{width:100%; resize:vertical; min-height:70px; font-family:'Vazirmatn',sans-serif;}
+button.btn{background:var(--gold); color:#1A1508; border:none; padding:8px 16px; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; cursor:pointer; border-radius:var(--radius); letter-spacing:.3px;}
+button.btn:hover{background:#d8b06f;}
+button.btn.small{padding:5px 10px; font-size:11px;}
+
+.rating-line{display:flex; align-items:center; gap:10px; margin:10px 0;}
+.rating-line input[type=range]{flex:1; accent-color:var(--teal);}
+.rating-val{font-family:'IBM Plex Mono',monospace; color:var(--gold); width:24px; text-align:center;}
+
+table{width:100%; border-collapse:collapse; font-size:12.5px;}
+th{font-family:'IBM Plex Mono',monospace; color:var(--ink-dim); text-align:right; font-weight:500; padding:8px 6px; border-bottom:1px solid var(--gold-dim); white-space:nowrap;}
+td{padding:8px 6px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono',monospace;}
+tr:hover td{background:rgba(201,161,92,0.04);}
+.tag{display:inline-block; padding:2px 8px; border-radius:10px; font-size:10.5px; background:var(--surface); border:1px solid var(--line); color:var(--ink-dim); font-family:'Vazirmatn',sans-serif;}
+.plan-section-title{font-family:'Spectral',serif; font-size:18px; color:var(--gold); margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--gold-dim);}
+.plan-quote{background:var(--surface2); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:14px 18px; font-family:'Spectral',serif; font-style:italic; color:var(--ink); font-size:14px; line-height:2; margin-bottom:18px;}
+.plan-item{margin-bottom:10px; border-radius:var(--radius); overflow:hidden;}
+.plan-item summary{cursor:pointer; list-style:none; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px; font-family:'Spectral',serif; font-weight:600; color:var(--ink); font-size:14px;}
+.plan-item summary::-webkit-details-marker{display:none;}
+.plan-item summary:before{content:'▸'; margin-left:8px; color:var(--gold); transition:transform .15s;}
+.plan-item[open] summary:before{transform:rotate(90deg);}
+.plan-item .plan-body{background:var(--surface); border:1px solid var(--line); border-top:none; border-radius:0 0 var(--radius) var(--radius); padding:14px 18px;}
+.plan-item .plan-body p{margin:0 0 10px; line-height:2; color:var(--ink-dim); font-size:13px;}
+.plan-item .plan-body textarea{margin-top:4px;}
+.status-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:2px 9px; border-radius:10px; white-space:nowrap;}
+.status-done{background:rgba(107,155,130,0.15); color:var(--teal); border:1px solid var(--teal);}
+.status-pending{background:rgba(197,155,74,0.15); color:var(--gold); border:1px solid var(--gold-dim);}
+
+.form-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px;}
+@media (max-width:820px){.form-grid{grid-template-columns:repeat(2,1fr);}}
+.form-grid .full{grid-column:1/-1;}
+.field label{display:block; font-size:11px; color:var(--ink-dim); margin-bottom:4px; font-family:'IBM Plex Mono',monospace;}
+.field input, .field select, .field textarea{width:100%;}
+
+.empty{color:var(--ink-dim); font-size:13px; padding:20px; text-align:center; border:1px dashed var(--line);}
+
+.stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px;}
+.stat{background:var(--surface); border:1px solid var(--line); padding:12px 18px; border-radius:var(--radius); min-width:130px;}
+.stat .lbl{font-size:11px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace;}
+.stat .val{font-family:'Spectral',serif; font-size:22px; margin-top:2px;}
+
+.chart-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:16px;}
+.chart-box canvas{max-height:230px;}
+
+.goal-card{padding:12px 14px; background:var(--surface); margin-bottom:12px; border-radius:var(--radius); border-right:3px solid var(--gold-dim);}
+.goal-card h4{margin:4px 0; font-family:'Spectral',serif; font-size:16px;}
+.goal-card p{margin:0 0 8px; font-size:13px; color:var(--ink-dim); line-height:1.8;}
+.goal-progress{height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; margin:8px 0 4px;}
+.goal-progress-fill{height:100%; background:var(--teal);}
+.goal-tasks{border-top:1px dashed var(--line); margin-top:10px; padding-top:10px;}
+
+.subgoal-card{margin-top:10px; padding:10px 12px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--line);}
+.subgoal-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
+.subgoal-title{font-family:'Spectral',serif; font-size:14px;}
+.subgoal-weight{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--gold);}
+.mini-progress{height:4px; background:var(--surface); border-radius:3px; overflow:hidden; margin:4px 0 8px;}
+.mini-progress-fill{height:100%; background:var(--teal);}
+.task-freq-tag{font-family:'IBM Plex Mono',monospace; font-size:9px; padding:1px 6px; border-radius:6px; border:1px solid var(--line); color:var(--ink-dim); margin-right:6px;}
+.routine-counter{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--gold-dim); margin-right:4px;}
+.add-subgoal-row, .add-task-row2{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center;}
+.add-subgoal-row input[type=text]{flex:1; min-width:120px;}
+.add-task-row2 input[type=text]{flex:1; min-width:120px;}
+
+.segmented{display:flex; gap:6px; margin-bottom:18px;}
+.toggle-btn{font-family:'IBM Plex Mono',monospace; font-size:12px; padding:6px 16px; cursor:pointer; background:var(--surface); border:1px solid var(--line); color:var(--ink-dim); border-radius:var(--radius);}
+.toggle-btn.active{background:var(--gold); color:#1A1508; border-color:var(--gold);}
+
+.progress-review-row{display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px dashed var(--line); flex-wrap:wrap;}
+.progress-review-row:last-child{border-bottom:none;}
+.pr-info{min-width:170px;}
+.pr-bar-wrap{flex:1; min-width:200px;}
+.pr-bar{height:9px; background:var(--surface); border-radius:5px; overflow:hidden; position:relative;}
+.pr-bar-fill{height:100%;}
+.pr-time-marker{position:absolute; top:-3px; width:2px; height:15px; background:var(--ink);}
+.status-tag{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:4px 10px; border-radius:10px; white-space:nowrap;}
+
+.week-cat-row{margin-bottom:12px;}
+.week-cat-row label{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-dim); margin-bottom:5px; font-family:'IBM Plex Mono',monospace;}
+.plan-label{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--gold-dim); margin-bottom:8px; letter-spacing:.5px;}
+.priority-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.priority-row .idx{font-family:'IBM Plex Mono',monospace; color:var(--gold); font-size:13px; width:16px;}
+.priority-row input[type=text]{flex:1;}
+.priority-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
+
+.review-history-item{padding:10px 0; border-bottom:1px dashed var(--line);}
+.review-history-item .period{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold-dim);}
+.review-history-item .rating{font-family:'Spectral',serif; color:var(--gold); font-size:15px;}
+
+.footer-note{margin-top:26px; font-size:11px; color:var(--ink-dim); text-align:center; font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <div>
+      <h1>دفتر من</h1>
+      <div class="sub">اثر مرکب &nbsp;·&nbsp; روان‌شناسی معامله‌گری &nbsp;·&nbsp; تصویر ذهنی &nbsp;·&nbsp; مسیر یادگیری AI</div>
+    </div>
+    <div class="date-box" id="todayLabel">—</div>
+  </div>
+
+  <div class="signature">
+    <div class="row">
+      <div class="streak">روز <b id="streakNum">۰</b> از مسیر پیوسته</div>
+      <div class="note" id="curveNote">در حال بارگذاری…</div>
+    </div>
+    <canvas id="curveCanvas"></canvas>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="dashboard">داشبورد امروز</button>
+    <button class="tab-btn" data-tab="planning">برنامه‌ریزی</button>
+    <button class="tab-btn" data-tab="habits">عادت‌ها</button>
+    <button class="tab-btn" data-tab="trading">روان‌شناسی معامله‌گری</button>
+    <button class="tab-btn" data-tab="tradingplan">پلن معاملاتی</button>
+    <button class="tab-btn" data-tab="finance">مالی شخصی</button>
+    <button class="tab-btn" data-tab="mind">تصویر ذهنی</button>
+    <button class="tab-btn" data-tab="goals">اهداف</button>
+    <button class="tab-btn" data-tab="review">مرور دوره‌ای</button>
+    <button class="tab-btn" data-tab="analytics">تحلیل عملکرد</button>
+    <button class="tab-btn" data-tab="lifelog">رویدادنامه</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel" id="panel-dashboard">
+    <h2>داشبورد امروز</h2>
+    <div class="desc">وظایف نزدیک از اهداف، چک‌لیست، برنامه امروز با وضعیت هرکدام، ثبت زمان‌بندی کارها، و وضعیت ذهنی — همه در یک نگاه.</div>
+    <div id="backupReminderBanner"></div>
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>روتین روزانه (دوشنبه تا پنجشنبه)</h3>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>بازه (تهران)</th><th>فعالیت</th></tr></thead>
+        <tbody>
+          <tr><td>۰۶:۳۰ – ۰۷:۰۰</td><td>تحلیل مرحله اول: مرور سشن آسیا، بروزرسانی روند HTF، چک تقویم اقتصادی</td></tr>
+          <tr><td>۰۸:۰۰ – ۱۶:۰۰</td><td>ساعت کاری — بدون معامله فعال</td></tr>
+          <tr><td>۱۶:۰۰ – ۱۶:۳۰</td><td>تحلیل نهایی: H1 (Volume Profile + Supply/Demand) + چک‌لیست ۸موردی</td></tr>
+          <tr><td>۱۶:۳۰ – ۲۱:۰۰</td><td>پنجره فعال معامله (همپوشانی لندن-نیویورک)</td></tr>
+          <tr><td>۲۱:۰۰ – ۲۱:۱۵</td><td>ژورنال فنی + احساسی</td></tr>
+          <tr><td>۲۱:۱۵ – ۲۱:۲۰</td><td>یادآوری روزانه از کتاب «مربی معامله‌گری»</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="desc" style="margin-top:8px; margin-bottom:0;">مرور هفتگی: جمعه، ۰۹:۰۰ تا ۱۱:۰۰.</div>
+    </div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>کارهای این هفته از اهداف — سررسید نزدیک</h3>
+      <div class="desc" style="margin-bottom:6px;">این‌ها خودکار از وظایف زیرهدف‌های تب «اهداف» می‌آیند؛ تیک‌زدن اینجا همان وظیفه را در آن هدف هم به‌روزرسانی می‌کند.</div>
+      <div id="weeklyExecutionList"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>چک‌لیست عادت‌های امروز</h3>
+        <div id="dashHabitList"></div>
+      </div>
+      <div class="card">
+        <h3>وضعیت ذهنی امروز (مالتز)</h3>
+        <div class="rating-line">
+          <span style="font-size:12px;color:var(--ink-dim);width:90px;">کیفیت گفتگوی درونی</span>
+          <input type="range" min="1" max="10" id="selfTalkRange">
+          <span class="rating-val" id="selfTalkVal">5</span>
+        </div>
+        <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;">جمله تاکیدی امروز</label>
+        <textarea id="affirmationInput" placeholder="مثلاً: من با نظم و بدون احساس، طبق پلن تصمیم می‌گیرم."></textarea>
+        <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="visDone" style="width:16px;height:16px;accent-color:var(--gold);">
+          <label for="visDone" style="font-size:13px;">تمرین تجسم ذهنی امروز انجام شد</label>
+        </div>
+        <button class="btn" style="margin-top:12px;" onclick="saveMindToday()">ذخیره وضعیت امروز</button>
+      </div>
+
+      <div class="card full">
+        <h3>برنامه‌ریزی روزانه امروز</h3>
+        <div id="dashPriorityList"></div>
+        <div class="add-row">
+          <input type="text" id="newPriorityText" placeholder="کار/برنامه جدید…">
+          <select id="newPriorityCat"></select>
+          <select id="newPriorityDay" style="max-width:90px;">
+            <option value="today">امروز</option>
+            <option value="tomorrow">فردا</option>
+          </select>
+          <button class="btn small" onclick="addPriorityItem()">افزودن</button>
+        </div>
+
+        <div style="border-top:1px dashed var(--line); margin-top:14px; padding-top:12px;">
+          <div class="plan-label">کارهای فردا (از قبل چیده‌شده)</div>
+          <div id="dashTomorrowPriorityList"></div>
+        </div>
+
+        <div style="border-top:1px dashed var(--line); margin-top:14px; padding-top:12px;">
+          <div class="plan-label">شب — مرور روز</div>
+          <div class="rating-line">
+            <span style="font-size:12px;color:var(--ink-dim);width:130px;">پایبندی به برنامه امروز</span>
+            <input type="range" min="1" max="10" id="adherenceRange">
+            <span class="rating-val" id="adherenceVal">5</span>
+          </div>
+          <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;">بزرگ‌ترین موفقیت امروز</label>
+          <textarea id="todayWin" style="min-height:44px;"></textarea>
+          <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-top:8px;display:block;">فردا چه چیزی بهتر انجام بدم؟</label>
+          <textarea id="todayImprove" style="min-height:44px;"></textarea>
+          <button class="btn" style="margin-top:10px;" onclick="saveEveningReview()">ذخیره مرور شب</button>
+        </div>
+      </div>
+
+      <div class="card full">
+        <h3>ثبت زمان‌بندی کارهای امروز</h3>
+        <div class="desc" style="margin-bottom:10px;">مثلاً رفت‌وآمد، کارهای اداری شرکت، یا هر کار دیگری که زمان مشخصی گرفته.</div>
+        <div style="overflow-x:auto;">
+        <table id="timeLogTable">
+          <thead><tr><th>شروع</th><th>پایان</th><th>فعالیت</th><th>دسته</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <div id="timeLogEmpty" class="empty" style="display:none;">هنوز فعالیتی ثبت نشده.</div>
+        <div class="add-row">
+          <input type="time" id="tl_start" style="width:110px;">
+          <button class="btn small" type="button" onclick="document.getElementById('tl_start').value=nowTimeStr()">الان</button>
+          <input type="time" id="tl_end" style="width:110px;">
+          <button class="btn small" type="button" onclick="document.getElementById('tl_end').value=nowTimeStr()">الان</button>
+          <input type="text" id="tl_activity" placeholder="فعالیت…">
+          <select id="tl_cat"></select>
+          <button class="btn small" onclick="addTimeLogEntry()">ثبت</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANNING -->
+  <div class="panel" id="panel-planning" style="display:none;">
+    <h2>برنامه‌ریزی هفتگی</h2>
+    <div class="desc">برنامه هفتگی را به تفکیک دسته بنویس؛ هر مورد وضعیت جدا دارد: در انتظار، انجام شد، لغو شد یا موکول شد. (برنامه‌ریزی روزانه و وظایف نزدیک اهداف در تب «داشبورد امروز» است.)</div>
+    <div id="weekPlanCats"></div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="panel" id="panel-habits" style="display:none;">
+    <h2>عادت‌های مرکب — اثر مرکب هاردی</h2>
+    <div class="desc">تصمیم‌های کوچک روزانه‌ای که تکرار می‌شوند، مسیر بلندمدت را می‌سازند. عادت‌ها را به تفکیک دسته مدیریت کن.</div>
+    <div class="card">
+      <h3>فهرست عادت‌ها</h3>
+      <div id="habitManageList"></div>
+      <div class="add-row">
+        <input type="text" id="newHabitInput" placeholder="عادت جدید…">
+        <select id="newHabitCat"></select>
+        <button class="btn" onclick="addHabit()">افزودن</button>
+      </div>
+    </div>
+    <div class="chart-box" style="margin-top:16px;">
+      <h3 style="font-family:'Spectral',serif;color:var(--gold);font-size:15px;margin:0 0 10px;">نرخ انجام هفتگی</h3>
+      <canvas id="weeklyHabitChart"></canvas>
+    </div>
+  </div>
+
+  <!-- TRADING PSYCHOLOGY ONLY -->
+  <div class="panel" id="panel-trading" style="display:none;">
+    <h2>روان‌شناسی معامله‌گری — الگوی برت استینبارگر</h2>
+    <div class="desc">اینجا فقط روی رفتار و ذهن قبل و بعد از معامله تمرکز می‌کنیم؛ بدون عدد سود و زیان. الگوهای احساسی‌ای که باعث خروج از پلن می‌شوند را پیدا کن.</div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3>چک‌لیست پیش از ورود به معامله (طبق قانون ۱ پلن معاملاتی)</h3>
+      <div class="habit-row"><input type="checkbox" id="chk1"><label for="chk1">روند HTF بررسی شد (کانال/قدرت روند + دیدگاه فاندامنتال کلان)</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk2"><label for="chk2">محدوده H1 (Volume Profile / Supply-Demand) شناسایی و اهمیتش سنجیده شد</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk3"><label for="chk3">تریگر ورود LTF (الگوی کلاسیک/پرایس‌اکشن) شکل گرفته</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk4"><label for="chk4">امتیاز کلی ست‌آپ (روند۲۵٪+محدوده۴۰٪+تریگر۳۵٪) بالای آستانه است</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk5"><label for="chk5">SL/TP، حجم، و پلن Partial-TP/Break-even مشخص شده</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk6"><label for="chk6">نزدیک به زمان انتشار اخبار مهم نیستم</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk7"><label for="chk7">تحت تاثیر احساسات (عصبانیت بعد ضرر، FOMO) نیستم</label></div>
+      <div class="habit-row"><input type="checkbox" id="chk8"><label for="chk8">زمان کافی برای مدیریت فعال این معامله دارم</label></div>
+      <button class="btn small" style="margin-top:10px;" onclick="savePreTrade()">ذخیره چک‌لیست</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3>ثبت جلسه معامله‌گری</h3>
+      <div class="form-grid">
+        <div class="field"><label>تاریخ</label><input type="date" id="s_date"></div>
+        <div class="field"><label>طبق پلن بودم؟</label><select id="s_plan"><option value="بله">بله</option><option value="خیر">خیر</option></select></div>
+        <div class="field"><label>احساس قبل از معامله</label><select id="s_emo_before"><option>آرام</option><option>مطمئن</option><option>مضطرب</option><option>حریص</option><option>انتقام‌جو</option><option>خسته</option></select></div>
+        <div class="field"><label>احساس بعد از معامله</label><select id="s_emo_after"><option>راضی</option><option>پشیمان</option><option>عصبی</option><option>خنثی</option><option>مغرور</option></select></div>
+        <div class="field full"><label>یادداشت / درس رفتاری گرفته‌شده</label><textarea id="s_note" placeholder="چه الگوی ذهنی/رفتاری تکرار شد؟ چه چیزی باید اصلاح شود؟"></textarea></div>
+      </div>
+      <button class="btn" onclick="addSession()">ثبت جلسه</button>
+    </div>
+
+    <div class="card">
+      <h3>تاریخچه جلسات</h3>
+      <div style="overflow-x:auto;">
+      <table id="sessionTable">
+        <thead><tr><th>تاریخ</th><th>پلن</th><th>احساس قبل</th><th>احساس بعد</th><th>یادداشت</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+      <div id="sessionEmpty" class="empty" style="display:none;">هنوز جلسه‌ای ثبت نشده.</div>
+    </div>
+  </div>
+
+  <!-- TRADING PLAN -->
+  <div class="panel" id="panel-tradingplan" style="display:none;">
+    <h2>پلن معاملاتی — طلا / فارکس</h2>
+    <div class="desc">این تب، نسخه‌ی کامل و قابل‌مرور پلن معاملاتی است — جدا از ژورنال روزانه (تب روان‌شناسی معامله‌گری). روی هر آیتم کلیک کن تا باز شود؛ زیر هر آیتم جای یادداشت شخصی برای ثبت تغییرات آینده هست (طبق قانون ۹: تغییر پلن فقط در مرور ماهانه انجام شود).</div>
+
+    <div class="plan-quote">«هیچ سیستمی در بازار پویا همیشه کار نمی‌ده؛ اگر سیستمی همیشه کار بده، یعنی آن بازار دیگر پویا نیست و به‌زودی می‌میرد.»</div>
+
+    <div class="plan-section-title">بخش A — امیال شخصی</div>
+
+    <details class="plan-item"><summary>۱. چرا معامله‌گری <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>معامله‌گری بستری‌ست که هم‌زمان آزادی مالی و زمانی واقعی می‌دهد، هم مجبور به نظم و انضباط مداوم می‌کند. هدف اصلی و ملموس، رسیدن به درآمد پایدار و قابل‌پیش‌بینی است، نه یک برد یک‌باره. در کنار آن، این مسیر آگاهی از اقتصاد و شرایط جهانی را عمیق‌تر می‌کند، توانایی حل مسئله و تحلیل را تقویت می‌کند، و در بلندمدت اجازه می‌دهد هم برای خانواده دارایی بسازم و هم به دیگران کمک کنم. هدف نهایی: معامله‌گری با سود مداوم و قابل‌اتکا — همراه با یقین، نه شانس.</p>
+        <textarea class="tp-note" id="tp_a1" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۲. چشم‌انداز زندگی <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>۵ سال دیگر، معامله‌گری بی‌نیاز باشم — بی‌نیاز از شغل ثابت، فشار مالی، نگرانی آینده. تکیه‌گاه مالی و شخصیتی خانواده و نزدیکان باشم؛ هم از نظر مالی حامی‌شان باشم، هم از نظر ثبات شخصیتی و منش، الگو و پناهی برایشان.</p>
+        <textarea class="tp-note" id="tp_a2" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. نقاط ضعف و قوت — دسته A (احساسی) <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>ضعف:</b> بعد از ضرر، عصبانیت و تلاش برای جبران سریع (Revenge Trading)؛ ترس از دست دادن فرصت باعث ورود زودهنگام می‌شود (FOMO).<br><b>قوت:</b> صبر و دقت بالا در مرحله تحلیل.</p>
+        <textarea class="tp-note" id="tp_a3" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. نقاط ضعف و قوت — دسته B (سیستم معاملاتی) <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>ضعف:</b> نبود ست‌آپ ورود ثابت، عدم رعایت دقیق حد ضرر/سود، نبود بک‌تست، قاطی‌کردن تایم‌فریم‌ها، مدیریت حجم نامنظم.<br><b>قوت:</b> تحلیل تکنیکال قوی، فهم دقیق و عمیق بازار، همه‌جانبه‌نگری (دیدن تصویر بزرگ‌تر).</p>
+        <textarea class="tp-note" id="tp_a4" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. نقاط ضعف و قوت — دسته C (شخصی/رفتاری) <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>ضعف:</b> استرس مالی بیرون از بازار، نبود روتین ثابت، درگیری‌های ذهنی/کاری دیگر (به‌جز خواب که وضعیت مناسبی دارد).<br><b>قوت:</b> زمان کافی و آزاد برای تمرکز روی ترید.</p>
+        <textarea class="tp-note" id="tp_a5" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۴. اهداف عینی / پولی + جذب سرمایه <span class="status-pill status-done">تکمیل‌شده (نسخه اول)</span></summary>
+      <div class="plan-body">
+        <p>سرمایه اولیه ۳۰ میلیون تومان. فاز ۱ (ماه ۱-۳): تثبیت انضباط، بازده هدف ۳-۵٪ ماهانه. فاز ۲ (ماه ۴-۹): تثبیت ثبات، بازده هدف ۵-۱۰٪. فاز ۳ (ماه ۱۰+): رشد مرکب، بازده هدف ۸-۱۵٪. هدف نهایی: ۲۵ میلیون تومان درآمد ماهانه در حدود ۲ سال (نیازمند سرمایه ~۲۵۰ میلیون تومان با بازده ۱۰٪ ماهانه پایدار — صرفاً محاسبه ریاضی، نه تضمین یا مشاوره مالی).</p>
+        <p><b>کانال‌های رشد سرمایه:</b> پس‌انداز شخصی (از همین الان)، پراپ فرم (بعد از ۳ ماه پایبندی مستند)، سرمایه خانواده/دوستان (بعد از ۴-۶ ماه Track Record)، مدیریت سرمایه حرفه‌ای دیگران (آینده دورتر، نیازمند سابقه بلندمدت و احتمالاً مجوز رسمی).</p>
+        <textarea class="tp-note" id="tp_a6" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۵. نحوه برخورد با نقاط ضعف/قوت <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>بررسی نقاط ضعف/قوت، تعیین راه‌حل بهبود و ارزیابی عملکرد در یک چرخه‌ی زمانی هفتگی (جمعه‌ها) و ماهانه (روز آخر ماه) انجام می‌شود. منبع دانش و مسیر یادگیری: کتاب «مربی معامله‌گری». ابزار ارزیابی دوسطحی: ژورنال معاملات (برای خود سیستم) + میزان پایبندی به پلن کلی (برای کلیت مسیر).</p>
+        <textarea class="tp-note" id="tp_a7" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۶. استایل معامله‌گری <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>سبک زمانی: دیترید (روزانه، بسته‌شدن همان روز). ساختار کاری: انفرادی/تنها. روش اجرا: در حال حاضر دستی؛ به‌مرور برای مدیریت سرمایه و شناسایی اولیه فرصت‌ها به‌سمت استفاده از الگوریتم حرکت می‌کند (نه جایگزینی کامل تحلیل دستی).</p>
+        <textarea class="tp-note" id="tp_a8" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <div class="plan-section-title">بخش B — سیستم معاملاتی</div>
+
+    <details class="plan-item"><summary>۱. بازارها و ابزارها <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>ابزار اصلی: طلا (XAU/USD) — به‌دلیل نوسان بالا، حجم و نقدشوندگی بالا، دید و شناخت بهتر، و پیروی بیشتر از اصول بازار آزاد. ابزارهای فرعی/مکمل: EUR/USD، S&amp;P500، نفت.</p>
+        <textarea class="tp-note" id="tp_b1" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۲. تایم‌فریم <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>تحلیل چند تایم‌فریمی: H4/Daily برای تشخیص روند کلی (HTF) → H1 برای تحلیل ساختار و سطوح کلیدی → M15/M5 برای دقیق‌کردن نقطه ورود (LTF).</p>
+        <textarea class="tp-note" id="tp_b2" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. استراتژی — تشخیص روند / محدوده / تریگر <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>روند (HTF):</b> کلاسیک + پرایس‌اکشن؛ فقط context است، نه شرط سخت‌گیرانه ورود — صرفاً برای تعیین پتانسیل ریوارد بالا در صورت هم‌راستایی و جلوگیری از حرکت کاملاً برخلاف جریان اصلی بازار.</p>
+        <p><b>محدوده (H1):</b> ترکیب Volume Profile (POC، Value Area) + نواحی Supply/Demand. مهم‌ترین لایه تصمیم‌گیری.</p>
+        <p><b>تریگر ورود (LTF):</b> ترکیبی و کیفی (Discretionary)، نه چک‌لیست سفت‌وسخت — هم‌خوان با فلسفه بنیادین سیستم. الگوهای هندسی تایم بالا (کانال، مثلث، سر‌و‌شانه) برای تایید جهت و تعیین تارگت/سطوح استفاده می‌شوند، نه خودِ تریگر. تریگر واقعی روی سطوح اصلی از ترکیب این‌ها شکل می‌گیرد: الگوهای کندلی مشخص (پین‌بار، انگالفینگ، دوجی)، واکنش قیمت به ناحیه (رد شدن سریع یا نفوذ-و-برگشت)، ساختار شکست/تغییر مومنتوم (BOS/CHOCH)، و ساختار حرکتی قیمت پیش از رسیدن به محدوده (عمداً ذهنی، وابسته به تجربه).</p>
+        <p><b>تایم‌فریم تریگر:</b> یک تایم‌فریم پایین‌تر از تایمی که سطح در آن تعیین شده (مثلاً سطح از H1 → تریگر از M15)، با یک تایم‌فریم پایین‌تر دیگر (مثلاً M5) به‌عنوان چک نهایی و تاییدی — نه شرط جدا، بلکه گام آخر همان تحلیل.</p>
+        <textarea class="tp-note" id="tp_b3" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۴. مدیریت معاملات (SL/TP، Partial، Break-even) <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>SL:</b> ترکیب ATR (نوسان واقعی) + سطوح حمایت/مقاومت کلاسیک. <b>TP:</b> پویا، بر اساس Volume Profile.</p>
+        <p><b>Partial TP:</b> فقط اگر پیش از ورود مشخص شده باشد که ست‌آپ پتانسیل حرکت بزرگ دارد و با HTF هم‌راستاست، و R:R ≥ ۳.</p>
+        <p><b>Break-even:</b> در معاملات R:R≥۳، به‌محض رسیدن به ۱.۵R، حد ضرر به نقطه ورود منتقل می‌شود (ساختار Risk-Free Runner).</p>
+        <textarea class="tp-note" id="tp_b4" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۵. مدیریت ریسک اختصاصی استراتژی <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>سقف‌ها:</b> روزانه ۵٪ | هفتگی ۱۲.۵٪ | دراودان کل ۲۵٪ | حداکثر ۳ معامله همزمان.</p>
+        <p><b>روش امتیازدهی ست‌آپ:</b> هر لایه (روند/محدوده/تریگر) جدا از ۱۰ نمره می‌گیرد. امتیاز کل = (نمره روند×۲.۵) + (نمره محدوده×۴) + (نمره تریگر×۳.۵) → عددی از ۱۰۰.</p>
+        <p><b>خط قرمز ورود</b> (زیر این آستانه اصلاً معامله نمی‌شود): هم‌جهت با روند HTF → امتیاز کل ≥ ۷۵. خلاف‌جهت روند HTF → مجموع وزنی محدوده+تریگر (نمره روند نادیده گرفته می‌شود) ≥ ۶۵ از حداکثر ۷۵. در هر دو حالت: R:R ≥ ۲ اجباری.</p>
+        <p><b>فرمول تخصیص ریسک</b> (بعد از عبور از خط قرمز، خطی بین ۱.۵٪ تا ۵٪): هم‌جهت → ریسک٪ = ۱.۵ + ((امتیاز−۷۵)÷۲۵)×۳.۵ | خلاف‌جهت → ریسک٪ = ۱.۵ + ((امتیاز−۶۵)÷۱۰)×۳.۵. در امتیاز حداکثر (ریسک=۵٪ = High-Conviction واقعی)، معامله‌ی دیگری تا پایان همان روز مجاز نیست.</p>
+        <p><b>مثال:</b> هم‌جهت با امتیاز ۸۰ → ریسک≈۲.۲٪ | هم‌جهت با امتیاز ۹۵ → ریسک≈۴.۳٪ | خلاف‌جهت با امتیاز ۷۰ از ۷۵ → ریسک≈۳.۲۵٪.</p>
+        <textarea class="tp-note" id="tp_b5" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۶. امتیازبندی الگوها <span class="status-pill status-pending">زیرمعیارها ذهنی/باز</span></summary>
+      <div class="plan-body">
+        <p>روند ۲۵٪ + محدوده ۴۰٪ + تریگر ورود ۳۵٪. زیرمعیارهای هر بخش عمداً ذهنی و بر عهده‌ی تجربه و قضاوت معامله‌گر گذاشته شده (Discretionary Trading within a Systematic Framework) — هماهنگ با فلسفه بنیادین که بازار پویا نمی‌تواند کاملاً مکانیکی تحلیل شود.</p>
+        <textarea class="tp-note" id="tp_b6" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۷. جایگاه فاندامنتال <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>جایگاه مستقل ندارد — در دو جای دیگر ادغام شده: اخبار بزرگ/تاثیرگذار → شرایط اضطراری (قانون ۲)؛ تقویم اقتصادی → قانون زمانی (قانون ۲)؛ روند کلان + تقویم + چارت (برای چرخش روند) → ورودی کمکی برای تشخیص روند HTF (قلم ۳).</p>
+        <textarea class="tp-note" id="tp_b7" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <div class="plan-section-title">قوانین عمومی</div>
+
+    <details class="plan-item"><summary>۱. چک‌لیست پیش از ورود <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>۱) روند HTF بررسی‌شده (کانال/قدرت + دیدگاه فاندامنتال کلان) ۲) محدوده H1 شناسایی و اهمیتش سنجیده‌شده ۳) تریگر ورود LTF شکل‌گرفته ۴) امتیاز کلی ست‌آپ بالای آستانه است ۵) SL/TP/حجم/پلن Partial-Breakeven مشخص شده ۶) نزدیک اخبار مهم نیستم ۷) تحت تاثیر احساسات نیستم ۸) زمان کافی برای مدیریت فعال معامله دارم.</p>
+        <textarea class="tp-note" id="tp_r1" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۲. توقف‌های اضطراری <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p><b>اخبار مهم:</b> حتماً بدون پوزیشن باز + ۱۰ دقیقه قبل تا ۱۰ دقیقه بعد بدون ورود جدید (استثنا: رسیدن به ناحیه بسیار قوی، با احتیاط بسیار بیشتر).</p>
+        <p><b>اخبار متوسط:</b> پوزیشن باز و نزدیک TP → می‌بندم؛ دور از TP → کاری نمی‌کنم.</p>
+        <p><b>رویداد غیرمنتظره:</b> در سود → کاری نمی‌کنم؛ در زیان → تا حد امکان سریع می‌بندم.</p>
+        <p><b>توقف اضطراری شخصی:</b> رسیدن به سقف ۵٪ ضرر روزانه = پایان معامله تا روز بعد.</p>
+        <textarea class="tp-note" id="tp_r2" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. مرور و بازنگری سیستم <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>ماهانه، روز آخر ماه. محورها: مقایسه Win Ratio/R:R واقعی با انتظار، تشخیص بخش پرخطای امتیازبندی (روند/محدوده/تریگر)، مرور کیفی هماهنگی سیستم با بازار. دامنه: کل پلن، از جمله روتین روزانه/هفتگی.</p>
+        <textarea class="tp-note" id="tp_r3" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۴. مدیریت سرمایه عمومی <span class="status-pill status-done">تکمیل‌شده (نسخه اول)</span></summary>
+      <div class="plan-body">
+        <p>تخصیص کامل ۳۰ میلیون تومان به حساب. برداشت: فاز ۱ صفر برداشت؛ از فاز ۲ به بعد ۳۰-۵۰٪ سود ماهانه برداشت می‌شود. افزودن سرمایه: پس‌انداز آزادانه، پراپ بعد از ۳ ماه پایبندی، خانواده/دوستان بعد از ۴-۶ ماه Track Record.</p>
+        <textarea class="tp-note" id="tp_r4" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۵. حلقه‌ی پیشرفت <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>شناسایی (از مرور ماهانه/ژورنال) → تحلیل ریشه‌ای (چرا اتفاق افتاد) → تعریف راه‌حل مشخص → اجرای آزمایشی (۲ هفته/۱۰ معامله) → ارزیابی با داده واقعی → تثبیت در قوانین دائمی یا بازگشت به تحلیل ریشه‌ای.</p>
+        <textarea class="tp-note" id="tp_r5" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۶. مجازات تخلف از پلن <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>هر تخلف: توقف اجباری معامله تا پایان همان روز + ثبت اجباری در ژورنال (چی بود، چرا). تخلف تکراری در همان هفته: توقف ۲ روز کامل.</p>
+        <textarea class="tp-note" id="tp_r6" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۷. روتین روزانه و هفتگی <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>روزهای معاملاتی: دوشنبه تا پنجشنبه.</p>
+        <p><b>۰۶:۳۰-۰۷:۰۰</b> تحلیل مرحله اول (مرور سشن آسیا، بروزرسانی روند HTF، چک تقویم اقتصادی) · <b>۰۸:۰۰-۱۶:۰۰</b> ساعت کاری (بدون معامله) · <b>۱۶:۰۰-۱۶:۳۰</b> تحلیل نهایی (H1 + چک‌لیست ۸موردی) · <b>۱۶:۳۰-۲۱:۰۰</b> پنجره فعال معامله (همپوشانی لندن-نیویورک) · <b>۲۱:۰۰-۲۱:۱۵</b> ژورنال فنی+احساسی · <b>۲۱:۱۵-۲۱:۲۰</b> یادآوری از کتاب «مربی معامله‌گری».</p>
+        <p>مرور هفتگی: جمعه، ۰۹:۰۰ تا ۱۱:۰۰.</p>
+        <textarea class="tp-note" id="tp_r7" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۸. کنترل احساس و هیجان <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>بعد از هر ضرر: ۱ ساعت فاصله اجباری. دو ضرر پشت‌سرهم در یک روز: پایان معامله برای همان روز. بدون تیک کامل چک‌لیست: ورود ممنوع. ست‌آپ ازدست‌رفته: دنبالش نمی‌کنم. تشخیص تصمیم احساسی: خروج فوری از پلتفرم برای ۱۵-۲۰ دقیقه. + ژورنال احساسی معاملات (جدا از ژورنال فنی) + یادآوری روزانه یک نکته از کتاب «مربی معامله‌گری» پیش از شروع.</p>
+        <textarea class="tp-note" id="tp_r8" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۹. قوانین تغییر پلن <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>تغییر ساختار کلی پلن فقط در جلسه مرور ماهانه مجاز است، نه در وسط هفته یا بعد از یک ضرر بزرگ. هر تغییری باید مستند شود: چرا تغییر کرد، چه انتظاری از آن هست.</p>
+        <textarea class="tp-note" id="tp_r9" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <div class="plan-section-title">فلسفه بازار (نسخه نهایی)</div>
+
+    <details class="plan-item"><summary>۱. قیمت در بازه ارزش امروز و ارزش فردا <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>قیمت در بازه‌ای بین «ارزش امروز» (مصرف‌کننده‌محور) و «ارزش فردا» (سرمایه‌گذارمحور) قرار می‌گیرد و به‌سمت ارزش فردا میل می‌کند، چون در بازارهای مالی بازیگر غالب سرمایه‌گذار است. چرخش‌های بزرگ در نقاطی رخ می‌دهند که بخش قابل‌توجهی از بازار، تغییر مسیر ارزش فردا را درک می‌کند — یعنی چرخش، نتیجه‌ی یک بیداری جمعی است، نه یک تصمیم فردی.</p>
+        <p><b>نقش حجم:</b> حجم بالا (درصد قابل‌توجهی از کل حجم دارایی) → قیمت به برآیند ارزش‌گذاری جمعی نزدیک‌تر است. حجم پایین → قیمت می‌تواند کاملاً پرت باشد چون یک گروه کوچک آن را تعیین می‌کند. (این برآیند جمعی لزوماً «درست» نیست — حباب‌های مالی هم با حجم بالا شکل می‌گیرند؛ حجم بالا یعنی نزدیکی به توافق جمعی فعلی، نه لزوماً به ارزش بنیادی واقعی.)</p>
+        <textarea class="tp-note" id="tp_p1" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۲. نسبیت ارزش و عدم‌تقارن اطلاعات <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>ارزش هر چیزی برای افراد مختلف متفاوت است و افراد بر اساس اطلاعات نامتقارنی که دارند، قیمت‌گذاری متفاوتی می‌کنند. ترکیب سرمایه‌گذاران حاضر در بازار در هر لحظه، روی ارزش‌گذاری آنی تأثیر می‌گذارد.</p>
+        <textarea class="tp-note" id="tp_p2" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۳. روانشناسی جمعی و واکنش هیجانی <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>حرکات شدید قیمت اغلب واکنشی نامتناسب و هیجانی به یک رویداد است، نه لزوماً بازتاب تغییر واقعی در ارزش بنیادی. در کنار این، معامله‌گران به‌طور جمعی تمایل رفتاری به حفظ روند یا موقعیت فعلی دارند (نوعی Status Quo Bias) — یعنی حتی وقتی شواهد جدید خلاف روند غالب را نشان می‌دهد، بخشی از بازار دیرتر از موعد واقعی واکنش نشان می‌دهد یا موضع خود را حفظ می‌کند. این تأخیر جمعی، بخشی از دلیل شکل‌گیری نقاط چرخش تدریجی (به‌جای آنی) در بازار است.</p>
+        <textarea class="tp-note" id="tp_p3" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۴. اعتبار الگوها <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>اعتبار یک الگو به این بستگی دارد که آیا از رفتار مستقل و تکرارشونده‌ی جمعی می‌آید یا صرفاً محصول یک اتفاق موقت است. شرط‌های اعتبار: دیده‌شدن و دنبال‌شدن توسط تعداد کافی از بازیگران مستقل، زمان کافی برای شکل‌گیری، حجم معاملات کافی، و توجه به احتمال دستکاری یا تقلید مصنوعی.</p>
+        <textarea class="tp-note" id="tp_p4" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۵. جایگاه تکنیکال <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>در نهایت، برهم‌کنش عوامل بنیادی و روانشناسی بازار قیمت را تعیین می‌کند. تکنیکال ابزاری‌ست برای استخراج همین چهارچوب از طریق الگوهای رفتار گذشته‌ی معامله‌گران — تلاشی برای پیش‌بینی حرکت بازیگران اصلی، بدون توجه مستقیم به نحوه‌ی ارزش‌گذاری آن‌ها؛ اما چون تحرکات بازیگران بزرگ نتیجه‌ی ارزش‌گذاری خودشان است، تکنیکال هم به‌طور غیرمستقیم از ارزش تبعیت می‌کند. از سوی دیگر، تکنیکال خودش الگوهای رفتاری و روانشناسی را در خود دارد (مثل حساسیت ذهنی به قیمت‌های خاص)، و استفاده‌ی گسترده‌ی معامله‌گران جدید از آن باعث واکنش‌های خودتقویت‌شونده در همان نقاط تکنیکال می‌شود.</p>
+        <textarea class="tp-note" id="tp_p5" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <details class="plan-item"><summary>۶. از این دیدگاه تا کسب سود <span class="status-pill status-done">تکمیل‌شده</span></summary>
+      <div class="plan-body">
+        <p>روند کلان و اخبار سیاسی-اقتصادی → سناریوهای کلی (HTF). تکنیکال کلاسیک و تسلط بر چارت → تشخیص روند. عرضه/تقاضا + حجم + زمان‌بندی نسبی → سطوح احتمالی (محدوده). پرایس‌اکشن → رفتار لحظه‌ای معامله‌گران (تریگر). نظم و رفتار صحیح معامله‌گری → تبدیل تحلیل به نتیجه‌ی مالی.</p>
+        <p>پول هدف اصلی نیست، هرچند اهمیت زیادی دارد — معامله‌گری آینه‌ی تمام‌نمای شخصیت فرد است و می‌تواند ابزاری برای هر نوع پیشرفت شخصی باشد.</p>
+        <textarea class="tp-note" id="tp_p6" placeholder="یادداشت / تغییرات من..."></textarea>
+      </div>
+    </details>
+
+    <div class="plan-section-title">جمع‌بندی مسیر رشد سرمایه</div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>بازه</th><th>بازده هدف ماهانه</th><th>شاخص موفقیت اصلی</th><th>کانال رشد سرمایه فعال</th></tr></thead>
+        <tbody>
+          <tr><td>فاز ۱ (ماه ۱ تا ۳)</td><td>۳ تا ۵٪</td><td>پایبندی به قوانین پلن</td><td>پس‌انداز شخصی</td></tr>
+          <tr><td>فاز ۲ (ماه ۴ تا ۹)</td><td>۵ تا ۱۰٪</td><td>Win Ratio و R:R مستند و پایدار</td><td>پس‌انداز + پراپ فرم</td></tr>
+          <tr><td>فاز ۳ (ماه ۱۰ به بعد)</td><td>۸ تا ۱۵٪</td><td>رشد مرکب سرمایه</td><td>پس‌انداز + پراپ + خانواده/دوستان</td></tr>
+          <tr><td>هدف نهایی (~۲ سال)</td><td>—</td><td>۲۵ میلیون تومان درآمد ماهانه</td><td>همه کانال‌ها + احتمال مدیریت سرمایه دیگران</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="desc" style="margin:10px 0 0;">این اعداد صرفاً محاسبه‌ی ریاضی برای برنامه‌ریزی‌اند، نه تضمین یا مشاوره‌ی مالی.</div>
+    </div>
+  </div>
+
+  <!-- FINANCE -->
+  <div class="panel" id="panel-finance" style="display:none;">
+    <h2>مالی شخصی</h2>
+    <div class="desc">کاملاً جدا از حساب معاملاتی — فقط زندگی شخصی. برداشت ماهانه از حساب ترید (طبق قانون ۴ پلن معاملاتی: ۳۰-۵۰٪ سود ماهانه از فاز ۲ به بعد) رو می‌تونی این‌جا به‌عنوان یک درآمد ثبت کنی تا وارد بودجه‌ی شخصیت بشه.</div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3 id="financeMonthLabel">خلاصه این ماه</h3>
+      <div class="stat-row" id="financeStatRow"></div>
+    </div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>دسته‌های من</h3>
+      <div id="financeCatList" style="margin-bottom:12px;"></div>
+      <div class="add-row">
+        <input type="text" id="newFinCatName" placeholder="اسم دسته جدید…">
+        <select id="newFinCatType" style="max-width:100px;">
+          <option value="expense">هزینه</option>
+          <option value="income">درآمد</option>
+        </select>
+        <button class="btn small" onclick="addFinanceCategory()">افزودن دسته</button>
+      </div>
+    </div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>ثبت تراکنش</h3>
+      <div class="add-row">
+        <select id="fin_type" onchange="fillFinanceCatSelect()" style="max-width:100px;">
+          <option value="expense">خرج</option>
+          <option value="income">درآمد</option>
+        </select>
+        <select id="fin_cat"></select>
+        <input type="number" id="fin_amount" placeholder="مبلغ (تومان)" style="max-width:150px;">
+        <input type="text" id="fin_note" placeholder="توضیح (اختیاری)">
+        <input type="date" id="fin_date" style="max-width:150px;">
+        <button class="btn small" onclick="addFinanceTx()">ثبت</button>
+      </div>
+    </div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>تراکنش‌های این ماه</h3>
+      <div id="financeTxList"></div>
+    </div>
+
+    <div class="card full" style="margin-bottom:16px;">
+      <h3>بودجه ماهانه هر دسته (خرج)</h3>
+      <div class="desc" style="margin-top:-4px;">برای هر دسته یک سقف بودجه ماهانه تعیین کن؛ نوار زیرش پیشرفت خرج این ماه رو نسبت به سقف نشون می‌ده.</div>
+      <div id="financeBudgetList"></div>
+    </div>
+
+    <div class="card full">
+      <h3>اهداف پس‌انداز</h3>
+      <div id="savingsGoalList" style="margin-bottom:14px;"></div>
+      <div class="add-row">
+        <input type="text" id="sg_name" placeholder="اسم هدف (مثلاً پیش‌پرداخت ماشین)…">
+        <input type="number" id="sg_target" placeholder="مبلغ هدف (تومان)" style="max-width:160px;">
+        <input type="date" id="sg_date" style="max-width:150px;">
+        <button class="btn small" onclick="addSavingsGoal()">افزودن هدف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIND -->
+  <div class="panel" id="panel-mind" style="display:none;">
+    <h2>تصویر ذهنی — روان‌شناسی تصویر ذهنی مالتز</h2>
+    <div class="desc">مالتز می‌گوید ذهن ناخودآگاه بین تجربه واقعی و تصویر ذهنی زنده و جزئی، فرق چندانی نمی‌گذارد.</div>
+    <div class="grid">
+      <div class="card">
+        <h3>جمله خودانگاره (Self-Image)</h3>
+        <textarea id="selfImageStatement" placeholder="من کسی هستم که با نظم، منطق و آرامش تصمیم می‌گیرد و به فرآیندش پایبند است." style="min-height:100px;"></textarea>
+        <button class="btn small" style="margin-top:8px;" onclick="saveSelfImage()">ذخیره</button>
+      </div>
+      <div class="card">
+        <h3>سناریوی تجسم ذهنی</h3>
+        <textarea id="mentalMovie" placeholder="صحنه را با جزئیات حسی بنویس…" style="min-height:100px;"></textarea>
+        <button class="btn small" style="margin-top:8px;" onclick="saveMentalMovie()">ذخیره</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>تاریخچه‌ی جمله‌های تاکیدی روزانه</h3>
+      <div id="affirmationHistory"></div>
+    </div>
+  </div>
+
+  <!-- GOALS -->
+  <div class="panel" id="panel-goals" style="display:none;">
+    <h2>اهداف</h2>
+    <div class="desc">هر هدف را به چند زیرهدف بشکن؛ هر زیرهدف درصد مشخصی از هدف اصلی را به خودش اختصاص می‌دهد و زیر آن وظیفه تعریف می‌کنی — یک‌باره یا روتین/چند روزه.</div>
+
+    <div class="segmented">
+      <button class="toggle-btn active" id="toggleGoalsList" onclick="setGoalsView('list')">لیست اهداف و زیرهدف‌ها</button>
+      <button class="toggle-btn" id="toggleGoalsProgress" onclick="setGoalsView('progress')">بررسی پیشرفت کلی</button>
+    </div>
+
+    <div id="goalsListView">
+      <div class="card">
+        <div class="form-grid">
+          <div class="field"><label>عنوان هدف</label><input type="text" id="g_title" placeholder="مثلاً: معامله‌گری منظم و آرام"></div>
+          <div class="field"><label>دسته</label><select id="g_cat"></select></div>
+          <div class="field"><label>تاریخ هدف</label><input type="date" id="g_date"></div>
+          <div class="field full"><label>شرح / تصویر پایانی هدف</label><textarea id="g_desc"></textarea></div>
+        </div>
+        <button class="btn" onclick="addGoal()">افزودن هدف</button>
+      </div>
+      <div id="goalList" style="margin-top:16px;"></div>
+    </div>
+
+    <div id="goalsProgressView" style="display:none;">
+      <div class="card">
+        <h3>پیشرفت هر هدف نسبت به زمان سپری‌شده</h3>
+        <div id="goalsProgressList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="panel" id="panel-review" style="display:none;">
+    <h2>مرور دوره‌ای</h2>
+    <div class="desc">اثر مرکب فقط از تکرار روزانه نمی‌آید، از مرور منظم هم می‌آید.</div>
+    <div class="segmented">
+      <button class="toggle-btn active" id="toggleWeekly" onclick="setReviewMode('weekly')">هفتگی</button>
+      <button class="toggle-btn" id="toggleMonthly" onclick="setReviewMode('monthly')">ماهانه</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3>اهداف این دوره</h3>
+      <div class="desc" style="margin-bottom:8px;">این اهداف کوتاه‌مدت و مخصوص همین هفته/ماه هستند — کاملاً جدا از اهداف بلندمدت تب «اهداف».</div>
+      <div id="periodGoalList"></div>
+      <div class="add-row">
+        <input type="text" id="newPeriodGoalInput" placeholder="هدف این دوره…">
+        <button class="btn small" onclick="addPeriodGoal()">افزودن</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3 id="reviewPeriodLabel">این هفته</h3>
+      <div class="stat-row" id="reviewStatRow"></div>
+      <div class="rating-line">
+        <span style="font-size:12px;color:var(--ink-dim);width:130px;">امتیاز کلی به این دوره</span>
+        <input type="range" min="1" max="10" id="reviewRating">
+        <span class="rating-val" id="reviewRatingVal">5</span>
+      </div>
+      <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;">بزرگ‌ترین موفقیت این دوره</label>
+      <textarea id="reviewWin"></textarea>
+      <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-top:8px;display:block;">بزرگ‌ترین چالش</label>
+      <textarea id="reviewChallenge"></textarea>
+      <label style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-top:8px;display:block;">دوره‌ی بعد چه چیزی را تغییر می‌دهم؟</label>
+      <textarea id="reviewAdjust"></textarea>
+      <button class="btn" style="margin-top:12px;" onclick="saveReview()">ذخیره مرور این دوره</button>
+    </div>
+
+    <div class="card">
+      <h3>تاریخچه مرورها</h3>
+      <div id="reviewHistory"></div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="panel" id="panel-analytics" style="display:none;">
+    <h2>تحلیل عملکرد</h2>
+    <div class="desc">پیوستگی عادت‌ها به تفکیک دسته، روند حال ذهنی، و پایبندی رفتاری در معامله‌گری.</div>
+    <div class="stat-row" id="statRow"></div>
+    <div class="chart-box"><h3 style="font-family:'Spectral',serif;color:var(--gold);font-size:15px;margin:0 0 10px;">پیوستگی هر دسته (میانگین ۳۰ روز اخیر)</h3><canvas id="catChart"></canvas></div>
+    <div class="chart-box"><h3 style="font-family:'Spectral',serif;color:var(--gold);font-size:15px;margin:0 0 10px;">روند کیفیت گفتگوی درونی</h3><canvas id="selfTalkChart"></canvas></div>
+    <div class="chart-box"><h3 style="font-family:'Spectral',serif;color:var(--gold);font-size:15px;margin:0 0 10px;">پیوستگی کل عادت‌ها (تجمعی)</h3><canvas id="compoundChart"></canvas></div>
+  </div>
+
+  <!-- LIFE LOG -->
+  <div class="panel" id="panel-lifelog" style="display:none;">
+    <h2>رویدادنامه زندگی</h2>
+    <div class="desc">یک‌جا برای ثبت سریع هر اتفاق، فکر یا نکته‌ی مهم — بدون نیاز به فکر کردن که «کجای دفتر باید بنویسمش». بعداً بر اساس دسته فیلترش کن و ببین چه‌جوری به هم مربوطن.</div>
+    <div class="card full" style="margin-bottom:16px;">
+      <div class="add-row">
+        <input type="text" id="newEventText" placeholder="چه اتفاقی افتاد یا چه نکته‌ای مهمه؟…">
+        <select id="newEventCat"></select>
+        <input type="date" id="newEventDate" style="max-width:150px;">
+        <button class="btn small" onclick="addLifeEvent()">ثبت</button>
+      </div>
+    </div>
+    <div class="card full">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+        <h3 style="margin:0;">تاریخچه رویدادها</h3>
+        <select id="eventFilterCat"></select>
+      </div>
+      <div id="lifeEventList"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>پشتیبان‌گیری — این یعنی چی؟</h3>
+    <div class="desc">همه‌ی اطلاعات این دفتر (عادت‌ها، پلن معاملاتی، مالی، رویدادها، اهداف...) فقط داخل همین مرورگر و همین دستگاه ذخیره می‌شن — نه روی هیچ سروری. یعنی اگه کش مرورگر پاک بشه، دستگاهتو عوض کنی، یا همین فایل رو تو یه مرورگر دیگه باز کنی، هیچ‌کدوم از این اطلاعات اونجا نیست. «پشتیبان‌گیری» یعنی از همه‌چیز یه کپی بگیری و جای امن نگهش داری، تا هروقت لازم شد برش گردونی.</div>
+
+    <div style="margin:14px 0;">
+      <div style="font-size:12.5px; color:var(--gold); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">۱) برای گرفتن پشتیبان:</div>
+      <ol style="margin:0 0 16px; padding-right:20px; font-size:13px; line-height:2;">
+        <li>روی دکمه‌ی «دانلود پشتیبان» پایین بزن.</li>
+        <li>یه فایل با اسمی شبیه «دفتر-من-پشتیبان-۲۰۲۶-۰۹-....json» توی پوشه‌ی Download گوشی یا کامپیوترت ذخیره می‌شه.</li>
+        <li>همون فایل رو یه‌جای امن نگه دار — مثلاً بفرستش به خودت تو تلگرام (Saved Messages)، یا آپلودش کن روی گوگل‌درایو.</li>
+      </ol>
+      <div style="font-size:12.5px; color:var(--gold); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">۲) برای برگردوندن اطلاعات (مثلاً روی دستگاه جدید یا مرورگر جدید):</div>
+      <ol style="margin:0; padding-right:20px; font-size:13px; line-height:2;">
+        <li>همین فایل HTML دفتر رو باز کن.</li>
+        <li>روی «بازیابی از فایل» بزن و همون فایل JSON که قبلاً دانلود کرده بودی رو انتخاب کن.</li>
+        <li>صفحه خودش رفرش می‌شه و همه‌چیز برمی‌گرده سرجاش.</li>
+      </ol>
+    </div>
+
+    <div id="lastBackupStatus" style="font-size:12px; color:var(--ink-dim); margin-bottom:10px; font-family:'IBM Plex Mono',monospace;"></div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="btn" onclick="exportBackup()">دانلود پشتیبان (JSON)</button>
+      <label class="btn small" style="cursor:pointer;">
+        بازیابی از فایل
+        <input type="file" accept="application/json" onchange="importBackupFile(this)" style="display:none;">
+      </label>
+    </div>
+  </div>
+
+  <div class="footer-note">داده‌ها فقط در همین مرورگر ذخیره می‌شوند، مستقل از هر سرویس دیگری · دفتر من</div>
+</div>
+
+<script>
+const todayStr = () => new Date().toISOString().slice(0,10);
+const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); };
+const nowTimeStr = () => new Date().toTimeString().slice(0,5);
+const fmtFa = (d) => new Date(d).toLocaleDateString('fa-IR');
+document.getElementById('todayLabel').textContent = fmtFa(new Date());
+
+const CATS = [
+  {key:'work', label:'کار / حسابداری', color:'var(--gold)'},
+  {key:'trading', label:'معامله‌گری', color:'var(--teal)'},
+  {key:'family', label:'خانواده', color:'var(--family)'},
+  {key:'routine', label:'عادت‌های روزمره', color:'var(--routine)'},
+  {key:'learn', label:'مسیر یادگیری AI', color:'var(--learn)'},
+];
+function catLabel(key){ const c = CATS.find(x=>x.key===key); return c? c.label : 'عادت‌های روزمره'; }
+function catColor(key){ const c = CATS.find(x=>x.key===key); return c? c.color : 'var(--routine)'; }
+function fillCatSelect(sel){ sel.innerHTML = CATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join(''); }
+
+const TIMELOG_CATS = CATS.concat([{key:'other', label:'سایر', color:'var(--ink-dim)'}]);
+function tlCatLabel(key){ const c=TIMELOG_CATS.find(x=>x.key===key); return c? c.label:'سایر'; }
+function tlCatColor(key){ const c=TIMELOG_CATS.find(x=>x.key===key); return c? c.color:'var(--ink-dim)'; }
+function fillTimeLogCatSelect(sel){ sel.innerHTML = TIMELOG_CATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join(''); }
+
+const STATUSES = [
+  {key:'pending', label:'در انتظار', color:'var(--ink-dim)'},
+  {key:'done', label:'انجام شد', color:'var(--teal)'},
+  {key:'cancelled', label:'لغو شد', color:'var(--brick)'},
+  {key:'postponed', label:'موکول شد', color:'var(--gold)'},
+];
+function statusLabel(key){ const s=STATUSES.find(x=>x.key===key); return s? s.label:'در انتظار'; }
+function statusColor(key){ const s=STATUSES.find(x=>x.key===key); return s? s.color:'var(--ink-dim)'; }
+function fillStatusSelect(sel){ sel.innerHTML = STATUSES.map(s=>`<option value="${s.key}">${s.label}</option>`).join(''); }
+
+let state = { habits: [], daily: {}, sessions: [], goals: [], _periodGoals: [], events: [], finance: {transactions:[], budgets:{}, savingsGoals:[], categories:[]} };
+
+const LS_PREFIX = 'daftarman:';
+async function safeGet(key, fallback){
+  try{ const raw = localStorage.getItem(LS_PREFIX+key); return raw!=null ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
+}
+async function safeSet(key, value){
+  try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(value)); }
+  catch(e){ console.error('storage error', key, e); alert('ذخیره‌سازی ناموفق بود — احتمالاً حافظه مرورگر پر است.'); }
+}
+async function safeList(prefix){
+  try{
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(LS_PREFIX)===0 && k.slice(LS_PREFIX.length).indexOf(prefix)===0) keys.push(k.slice(LS_PREFIX.length));
+    }
+    return keys;
+  }catch(e){ return []; }
+}
+
+/* ---------- Backup / restore (since data lives only in this browser) ---------- */
+function exportBackup(){
+  const data = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.indexOf(LS_PREFIX)===0){
+      try{ data[k.slice(LS_PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }catch(e){}
+    }
+  }
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'دفتر-من-پشتیبان-'+todayStr()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  safeSet('lastBackupDate', todayStr()).then(()=>{ const box=document.getElementById('backupReminderBanner'); if(box) renderBackupReminder(); });
+}
+function importBackupFile(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!confirm('این کار داده‌های فعلی این مرورگر را با محتوای فایل پشتیبان جایگزین می‌کند. ادامه می‌دهی؟')) return;
+      Object.keys(data).forEach(k=>{ localStorage.setItem(LS_PREFIX+k, JSON.stringify(data[k])); });
+      alert('بازیابی انجام شد. صفحه بارگذاری می‌شود…');
+      location.reload();
+    }catch(err){ alert('فایل پشتیبان معتبر نیست.'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+/* ---------- Life Log (unified event log across all life areas) ---------- */
+function fillEventFilterSelect(){
+  const sel = document.getElementById('eventFilterCat');
+  sel.innerHTML = '<option value="all">همه دسته‌ها</option>' + CATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
+}
+async function addLifeEvent(){
+  const textInput = document.getElementById('newEventText');
+  const text = textInput.value.trim();
+  if(!text) return;
+  const cat = document.getElementById('newEventCat').value;
+  const date = document.getElementById('newEventDate').value || todayStr();
+  if(!state.events) state.events = [];
+  state.events.push({id:'e'+Date.now(), text, cat, date, ts:Date.now()});
+  await safeSet('events', state.events);
+  textInput.value='';
+  renderLifeEvents();
+}
+function lifeEventRowHtml(e){
+  return `<div class="habit-row" data-eid="${e.id}">
+    <span class="cat-badge" style="color:${catColor(e.cat)};border-color:${catColor(e.cat)};flex-shrink:0;">${catLabel(e.cat)}</span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);flex-shrink:0;">${e.date}</span>
+    <label style="flex:1;">${escapeHtml(e.text)}</label>
+    <span class="del ev-del" data-id="${e.id}">حذف</span>
+  </div>`;
+}
+function renderLifeEvents(){
+  const box = document.getElementById('lifeEventList');
+  const filter = document.getElementById('eventFilterCat').value || 'all';
+  let list = (state.events||[]).slice().sort((a,b)=> b.date===a.date ? b.ts-a.ts : (b.date>a.date?1:-1));
+  if(filter!=='all') list = list.filter(e=>e.cat===filter);
+  if(list.length===0){ box.innerHTML = '<div class="empty">هنوز رویدادی ثبت نشده.</div>'; return; }
+  box.innerHTML = list.map(lifeEventRowHtml).join('');
+  box.querySelectorAll('.ev-del').forEach(el=>el.addEventListener('click', async ()=>{
+    state.events = state.events.filter(x=>x.id!==el.dataset.id);
+    await safeSet('events', state.events);
+    renderLifeEvents();
+  }));
+}
+document.getElementById('eventFilterCat')?.addEventListener('change', renderLifeEvents);
+
+/* ---------- Backup reminder ---------- */
+async function renderLastBackupStatus(){
+  const box = document.getElementById('lastBackupStatus');
+  if(!box) return;
+  const last = await safeGet('lastBackupDate', null);
+  if(!last){
+    box.innerHTML = '⚠️ تا الان هیچ پشتیبانی نگرفتی.';
+    box.style.color = 'var(--brick)';
+  } else {
+    const daysSince = Math.floor((new Date(todayStr()) - new Date(last)) / 86400000);
+    box.innerHTML = daysSince===0 ? '✓ امروز پشتیبان گرفتی.' : `آخرین پشتیبان: ${toFaDigits(daysSince)} روز پیش (${fmtFa(last)})`;
+    box.style.color = daysSince>=14 ? 'var(--brick)' : 'var(--ink-dim)';
+  }
+}
+async function renderBackupReminder(){
+  const box = document.getElementById('backupReminderBanner');
+  const last = await safeGet('lastBackupDate', null);
+  let daysSince = null;
+  if(last){
+    daysSince = Math.floor((new Date(todayStr()) - new Date(last)) / 86400000);
+  }
+  if(!last || daysSince >= 14){
+    box.innerHTML = `<div class="card full" style="margin-bottom:16px; border-color:var(--gold-dim); background:rgba(196,160,80,0.06);">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div style="font-size:13px;">${last? `آخرین پشتیبان: ${daysSince} روز پیش.` : 'هنوز هیچ پشتیبانی نگرفتی.'} داده‌های این دفتر فقط تو همین مرورگر هستن — یه پشتیبان تازه بگیر.</div>
+        <button class="btn small" onclick="exportBackup()">دانلود پشتیبان (JSON)</button>
+      </div>
+    </div>`;
+  } else {
+    box.innerHTML = '';
+  }
+  renderLastBackupStatus();
+}
+/* ---------- Personal Finance ---------- */
+const DEFAULT_FINANCE_CATS = [
+  {key:'income_trade', label:'برداشت ماهانه ترید', type:'income'},
+  {key:'income_other', label:'درآمد دیگر', type:'income'},
+  {key:'food', label:'خوراک', type:'expense'},
+  {key:'transport', label:'حمل‌ونقل', type:'expense'},
+  {key:'housing', label:'مسکن / قبوض', type:'expense'},
+  {key:'health', label:'سلامت', type:'expense'},
+  {key:'entertainment', label:'تفریح', type:'expense'},
+  {key:'shopping', label:'خرید / خرده‌ریز', type:'expense'},
+  {key:'other_expense', label:'سایر خرج‌ها', type:'expense'},
+];
+function financeCat(key){ return state.finance.categories.find(c=>c.key===key); }
+function financeCatLabel(key){ const c=financeCat(key); return c? c.label : key; }
+function financeCatColor(key){ const c=financeCat(key); if(!c) return 'var(--ink-dim)'; return c.type==='income' ? 'var(--teal)' : 'var(--brick)'; }
+function fmtToman(n){ n = Math.round(Number(n)||0); return toFaDigits(n.toLocaleString('en-US')); }
+function currentMonthKey(){ return todayStr().slice(0,7); }
+function fillFinanceCatSelect(){
+  const type = document.getElementById('fin_type').value;
+  const sel = document.getElementById('fin_cat');
+  sel.innerHTML = state.finance.categories.filter(c=>c.type===type).map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
+}
+async function addFinanceCategory(){
+  const nameInput = document.getElementById('newFinCatName');
+  const name = nameInput.value.trim();
+  if(!name) return;
+  const type = document.getElementById('newFinCatType').value;
+  state.finance.categories.push({key:'c'+Date.now(), label:name, type});
+  await safeSet('finance:categories', state.finance.categories);
+  nameInput.value='';
+  renderFinanceCatList();
+  fillFinanceCatSelect();
+  renderFinanceBudgets();
+}
+async function deleteFinanceCategory(key){
+  state.finance.categories = state.finance.categories.filter(c=>c.key!==key);
+  await safeSet('finance:categories', state.finance.categories);
+  renderFinanceCatList();
+  fillFinanceCatSelect();
+  renderFinanceBudgets();
+}
+function renderFinanceCatList(){
+  const box = document.getElementById('financeCatList');
+  if(!box) return;
+  if(state.finance.categories.length===0){ box.innerHTML = '<div class="empty">دسته‌ای نیست.</div>'; return; }
+  box.innerHTML = state.finance.categories.map(c=>`
+    <div class="habit-row" data-ckey="${c.key}">
+      <span class="cat-badge" style="color:${c.type==='income'?'var(--teal)':'var(--brick)'};border-color:${c.type==='income'?'var(--teal)':'var(--brick)'};flex-shrink:0;">${c.type==='income'?'درآمد':'هزینه'}</span>
+      <label style="flex:1;">${escapeHtml(c.label)}</label>
+      <span class="del" onclick="deleteFinanceCategory('${c.key}')">حذف</span>
+    </div>`).join('');
+}
+
+async function addFinanceTx(){
+  const type = document.getElementById('fin_type').value;
+  const cat = document.getElementById('fin_cat').value;
+  const amount = Number(document.getElementById('fin_amount').value);
+  const note = document.getElementById('fin_note').value.trim();
+  const date = document.getElementById('fin_date').value || todayStr();
+  if(!amount || amount<=0) return;
+  state.finance.transactions.push({id:'t'+Date.now(), type, cat, amount, note, date});
+  await safeSet('finance:transactions', state.finance.transactions);
+  document.getElementById('fin_amount').value=''; document.getElementById('fin_note').value='';
+  renderFinance();
+}
+
+function financeTxRowHtml(tx){
+  const sign = tx.type==='income' ? '+' : '−';
+  return `<div class="habit-row" data-tid="${tx.id}">
+    <span class="cat-badge" style="color:${financeCatColor(tx.cat)};border-color:${financeCatColor(tx.cat)};flex-shrink:0;">${financeCatLabel(tx.cat)}</span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);flex-shrink:0;">${tx.date}</span>
+    <label style="flex:1;">${escapeHtml(tx.note||'')}</label>
+    <span style="font-family:'IBM Plex Mono',monospace;color:${tx.type==='income'?'var(--teal)':'var(--brick)'};flex-shrink:0;">${sign}${fmtToman(tx.amount)}</span>
+    <span class="del fin-tx-del" data-id="${tx.id}">حذف</span>
+  </div>`;
+}
+
+function renderFinanceStats(){
+  const mk = currentMonthKey();
+  const txThisMonth = state.finance.transactions.filter(t=>t.date.slice(0,7)===mk);
+  const income = txThisMonth.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense = txThisMonth.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const tradeWithdraw = txThisMonth.filter(t=>t.cat==='income_trade').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('financeMonthLabel').textContent = 'خلاصه این ماه (' + new Date().toLocaleDateString('fa-IR', {month:'long', year:'numeric'}) + ')';
+  document.getElementById('financeStatRow').innerHTML = `
+    <div class="stat"><div class="lbl">درآمد این ماه</div><div class="val" style="color:var(--teal);">${fmtToman(income)}</div></div>
+    <div class="stat"><div class="lbl">خرج این ماه</div><div class="val" style="color:var(--brick);">${fmtToman(expense)}</div></div>
+    <div class="stat"><div class="lbl">مانده خالص</div><div class="val">${fmtToman(income-expense)}</div></div>
+    <div class="stat"><div class="lbl">برداشت ترید ثبت‌شده</div><div class="val">${fmtToman(tradeWithdraw)}</div></div>
+  `;
+}
+
+function renderFinanceTxList(){
+  const mk = currentMonthKey();
+  const box = document.getElementById('financeTxList');
+  const list = state.finance.transactions.filter(t=>t.date.slice(0,7)===mk).slice().sort((a,b)=> b.date>a.date?1:(b.date<a.date?-1:0));
+  if(list.length===0){ box.innerHTML = '<div class="empty">این ماه هنوز تراکنشی ثبت نشده.</div>'; return; }
+  box.innerHTML = list.map(financeTxRowHtml).join('');
+  box.querySelectorAll('.fin-tx-del').forEach(el=>el.addEventListener('click', async ()=>{
+    state.finance.transactions = state.finance.transactions.filter(x=>x.id!==el.dataset.id);
+    await safeSet('finance:transactions', state.finance.transactions);
+    renderFinance();
+  }));
+}
+
+function renderFinanceBudgets(){
+  const mk = currentMonthKey();
+  const box = document.getElementById('financeBudgetList');
+  const expenseCats = state.finance.categories.filter(c=>c.type==='expense');
+  box.innerHTML = expenseCats.map(c=>{
+    const budget = (state.finance.budgets[c.key]) || 0;
+    const spent = state.finance.transactions.filter(t=>t.type==='expense' && t.cat===c.key && t.date.slice(0,7)===mk).reduce((s,t)=>s+t.amount,0);
+    const pct = budget>0 ? Math.min(100, Math.round(100*spent/budget)) : 0;
+    const over = budget>0 && spent>budget;
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <label style="flex:1; font-size:13px;">${c.label}</label>
+        <span style="font-size:11px; font-family:'IBM Plex Mono',monospace; color:${over?'var(--brick)':'var(--ink-dim)'};">${fmtToman(spent)} / </span>
+        <input type="number" class="fin-budget-input" data-cat="${c.key}" value="${budget||''}" placeholder="سقف ماهانه" style="max-width:130px;">
+      </div>
+      <div class="mini-progress"><div class="mini-progress-fill" style="width:${pct}%; background:${over?'var(--brick)':'var(--teal)'};"></div></div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.fin-budget-input').forEach(el=>{
+    let t;
+    el.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(async ()=>{
+        state.finance.budgets[el.dataset.cat] = Number(el.value)||0;
+        await safeSet('finance:budgets', state.finance.budgets);
+        renderFinanceBudgets();
+      }, 500);
+    });
+  });
+}
+
+async function addSavingsGoal(){
+  const name = document.getElementById('sg_name').value.trim();
+  const target = Number(document.getElementById('sg_target').value);
+  const targetDate = document.getElementById('sg_date').value || '';
+  if(!name || !target || target<=0) return;
+  state.finance.savingsGoals.push({id:'sg'+Date.now(), name, target, saved:0, targetDate});
+  await safeSet('finance:savingsGoals', state.finance.savingsGoals);
+  document.getElementById('sg_name').value=''; document.getElementById('sg_target').value=''; document.getElementById('sg_date').value='';
+  renderSavingsGoals();
+}
+async function contributeSavingsGoal(id){
+  const input = document.querySelector(`.sg-contrib-input[data-id="${id}"]`);
+  const amount = Number(input.value);
+  if(!amount || amount<=0) return;
+  const g = state.finance.savingsGoals.find(x=>x.id===id);
+  if(!g) return;
+  g.saved += amount;
+  await safeSet('finance:savingsGoals', state.finance.savingsGoals);
+  input.value='';
+  renderSavingsGoals();
+}
+async function deleteSavingsGoal(id){
+  state.finance.savingsGoals = state.finance.savingsGoals.filter(x=>x.id!==id);
+  await safeSet('finance:savingsGoals', state.finance.savingsGoals);
+  renderSavingsGoals();
+}
+function renderSavingsGoals(){
+  const box = document.getElementById('savingsGoalList');
+  const list = state.finance.savingsGoals || [];
+  if(list.length===0){ box.innerHTML = '<div class="empty">هنوز هدف پس‌اندازی ثبت نشده.</div>'; return; }
+  box.innerHTML = list.map(g=>{
+    const pct = g.target>0 ? Math.min(100, Math.round(100*g.saved/g.target)) : 0;
+    return `<div class="goal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <b>${escapeHtml(g.name)}</b>
+        <span class="del" onclick="deleteSavingsGoal('${g.id}')">حذف</span>
+      </div>
+      <div class="goal-progress"><div class="goal-progress-fill" style="width:${pct}%;"></div></div>
+      <div style="font-size:12px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace;">${fmtToman(g.saved)} از ${fmtToman(g.target)} تومان (${toFaDigits(pct)}٪)${g.targetDate? ' · مهلت: '+fmtFa(g.targetDate) : ''}</div>
+      <div class="add-row" style="margin-top:8px;">
+        <input type="number" class="sg-contrib-input" data-id="${g.id}" placeholder="مبلغ افزودنی" style="max-width:150px;">
+        <button class="btn small" onclick="contributeSavingsGoal('${g.id}')">افزودن به پس‌انداز</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFinance(){
+  renderFinanceCatList();
+  renderFinanceStats();
+  renderFinanceTxList();
+  renderFinanceBudgets();
+  renderSavingsGoals();
+}
+const DEFAULT_HABITS = [
+  {id:'h1', name:'چک‌لیست پیش از بازار را انجام دادم', cat:'trading'},
+  {id:'h2', name:'بعد از معاملات، ژورنال رفتاری نوشتم', cat:'trading'},
+  {id:'h3', name:'۱۰ دقیقه تمرین تجسم ذهنی', cat:'routine'},
+  {id:'h4', name:'مطالعه/یادگیری حسابداری یا مالی', cat:'work'},
+  {id:'h5', name:'حرکت بدنی/ورزش', cat:'routine'},
+  {id:'h6', name:'وقت با کیفیت با خانواده', cat:'family'},
+];
+
+const AI_SEED_FLAG = 'ai_roadmap_seeded_v3';
+
+const DEFAULT_AI_HABITS = [
+  {id:'ai_h1', name:'حداقل ۱ ساعت مسیر فنی AI (پایتون/ML/DL) کار کردم', cat:'learn'},
+  {id:'ai_h2', name:'حداقل ۳۰ دقیقه با دستیار AI برای کار روزمره تمرین کردم', cat:'learn'},
+  {id:'ai_h3', name:'امروز حداقل یک کار واقعی حسابداری/گزارش‌دهی را با کمک AI انجام دادم', cat:'learn'},
+];
+
+const TRADING_SEED_FLAG = 'trading_habits_seeded_v3';
+// days: آرایه شماره روز هفته به سبک جاوااسکریپت — 0=یکشنبه, 1=دوشنبه, 2=سه‌شنبه, 3=چهارشنبه, 4=پنجشنبه, 5=جمعه, 6=شنبه
+// نبود این فیلد یعنی عادت هر روز نمایش داده می‌شود.
+const DEFAULT_TRADING_HABITS = [
+  {id:'tr_h1', name:'تحلیل صبح انجام شد (۰۶:۳۰-۰۷:۰۰)', cat:'trading', days:[1,2,3,4]},
+  {id:'tr_h2', name:'تحلیل نهایی قبل از پنجره معامله انجام شد (۱۶:۰۰-۱۶:۳۰)', cat:'trading', days:[1,2,3,4]},
+  {id:'tr_h3', name:'ژورنال فنی معاملات امروز ثبت شد (۲۱:۰۰-۲۱:۱۵)', cat:'trading', days:[1,2,3,4]},
+  {id:'tr_h4', name:'ژورنال احساسی امروز ثبت شد (۲۱:۰۰-۲۱:۱۵)', cat:'trading', days:[1,2,3,4]},
+  {id:'tr_h5', name:'یادآوری از کتاب «مربی معامله‌گری» مرور شد (۲۱:۱۵-۲۱:۲۰)', cat:'trading', days:[1,2,3,4]},
+  {id:'tr_h6', name:'مرور هفتگی انجام شد (۰۹:۰۰-۱۱:۰۰)', cat:'trading', days:[5]},
+];
+function habitApplicableOnDate(h, dateStr){
+  if(!h.days || !Array.isArray(h.days) || h.days.length===0) return true;
+  const dow = new Date(dateStr+'T00:00:00').getDay();
+  return h.days.includes(dow);
+}
+async function seedTradingHabitsIfNeeded(){
+  // این تابع همیشه اجرا می‌شود (نه فقط یک‌بار) تا اگر متن/روزهای روتین قبلاً قدیمی ثبت شده بود، با نسخه جدید هماهنگ شود
+  const existingIds = new Set(state.habits.map(h=>h.id));
+  let changed = false;
+  DEFAULT_TRADING_HABITS.forEach(h=>{
+    if(!existingIds.has(h.id)){ state.habits.push(h); changed = true; }
+    else{
+      const cur = state.habits.find(x=>x.id===h.id);
+      if(cur && (cur.name!==h.name || cur.cat!==h.cat || JSON.stringify(cur.days||[])!==JSON.stringify(h.days||[]))){
+        cur.name = h.name; cur.cat = h.cat; cur.days = h.days;
+        changed = true;
+      }
+    }
+  });
+  if(changed) await safeSet('habits', state.habits);
+  await safeSet(TRADING_SEED_FLAG, true);
+}
+
+
+function buildAIGoal(){
+  const today = new Date();
+  const addWeeks = (w)=>{ const d=new Date(today); d.setDate(d.getDate()+w*7); return d.toISOString().slice(0,10); };
+  const phase = (title, weight, weeks, sessionsPerWeek, project, note) => ({
+    id:'sg_'+title.replace(/[^a-zA-Z0-9]/g,'').slice(0,10)+'_'+Date.now()+Math.random().toString(36).slice(2,6),
+    title, weight,
+    requiredHabits: [],
+    tasks: [
+      {id:'t'+Date.now()+Math.random().toString(36).slice(2,6), text:'جلسات مطالعه و تمرین این فاز', freq:'routine', target:weeks*sessionsPerWeek, due:addWeeks(weeks), doneDates:[]},
+      ...(project? [{id:'t'+Date.now()+Math.random().toString(36).slice(2,6), text:project, freq:'once', due:addWeeks(weeks), done:false}] : []),
+      ...(note? [{id:'t'+Date.now()+Math.random().toString(36).slice(2,6), text:note, freq:'once', due:addWeeks(weeks), done:false}] : [])
+    ]
+  });
+  const goal = {
+    id:'g_ai_roadmap_'+Date.now(), title:'مسیر هوش مصنوعی — از صفر تا کاربردی (نسخه بازنگری‌شده، اولویت بازدهی سریع)', cat:'learn',
+    date: addWeeks(32), desc:'اولویت ۱: تبدیل شدن به کاربر کاملاً حرفه‌ای AI در زندگی روزمره و استفاده حرفه‌ای از آن در حسابداری، با تمرکز بر رسیدن هرچه زودتر به بازدهی واقعی در کار. اولویت ۲: تسلط کامل بر استفاده از AI در ترید. اولویت ۳ (ثانویه ولی مهم): درآمدزایی یا ساخت یک زمینه شغلی جدید از طریق AI، اگر پیش آمد. فازهای LLM و اتوماسیون حسابداری عمداً زودتر آورده شده‌اند تا در همان ماه‌های اول نتیجه ملموس در کار روزمره دیده شود؛ فازهای ML/DL سبک‌تر شده‌اند چون هدف ساخت مدل از صفر نیست، بلکه فهم و کاربرد است.',
+    createdAt: todayStr(), subGoals: [
+      phase('فاز ۰ — پایتون کاربردی', 8, 3, 4,
+        'نوشتن اسکریپتی که یک گزارش بودجه پروژه واقعی را پردازش و تمیز می‌کند',
+        'خروجی این فاز مستقیم در زبان کاری یک مدیر مالی پروژه‌ای است (بودجه، هزینه، انحراف)'),
+      phase('فاز ۱ — تحلیل داده و آمار کاربردی', 8, 3, 4,
+        'تحلیل انحراف بودجه از هزینه واقعی و پیش‌بینی ساده جریان نقدی یک پروژه واقعی',
+        null),
+      phase('فاز ۲ — هوش مصنوعی مولد و LLM (جلو کشیده شد)', 8, 3, 4,
+        'ساخت یک دستیار RAG متصل به اسناد و گزارش‌های مالی خودم',
+        'اولین quick win واقعی مسیر — مستقیم به هدف اول (کاربر حرفه‌ای AI روزمره) می‌رسد'),
+      phase('فاز ۳ — اتوماسیون حسابداری و گزارش‌گیری پروژه‌ای (جلو کشیده شد)', 10, 4, 4,
+        'ساخت ابزار گزارش‌گیری خودکار وضعیت مالی پروژه + دسته‌بندی خودکار تراکنش/فاکتور',
+        'زودتر آورده شد تا تا پایان هفته ۱۰ یک بازدهی مستقیم و ملموس در شغل فعلی حاصل شود'),
+      phase('فاز ۴ — یادگیری ماشین کلاسیک (سبک‌تر شد)', 12, 5, 4,
+        'ساخت و ارزیابی یک مدل طبقه‌بندی یا رگرسیون روی داده واقعی',
+        'تمرکز بر فهم مفهومی و استفاده از کتابخانه‌های آماده، نه مدل‌سازی ریاضی از صفر'),
+      phase('فاز ۵ — یادگیری عمیق کاربردی (سبک‌تر شد)', 10, 4, 4,
+        'کار با یک شبکه عصبی ساده در PyTorch روی یک دیتاست',
+        'استفاده از مدل‌های آماده در حد کاربردی، بدون ساخت پیچیده از صفر'),
+      phase('فاز ۶ — پایه دانشی ترید با AI', 15, 6, 4,
+        'بک‌تست یک استراتژی معاملاتی با یک مدل پیش‌بینی سری زمانی',
+        'بدون هدف درآمدی — فقط ساخت دانش؛ ورود با سرمایه واقعی، تصمیمی کاملاً جدا و بعداً است'),
+      phase('فاز ۷ — پروژه نهایی', 11, 4, 4,
+        'یکپارچه‌سازی ابزارهای فاز ۲ و ۳ در یک سیستم شخصی کاربردی برای کار روزمره',
+        'در صورت تمایل به فرصت شغلی جدید، همین سیستم به‌عنوان نمونه‌کار قابل‌ارائه هم کار می‌کند'),
+      phase('مسیر موازی — کاربر حرفه‌ای AI در کار روزمره', 10, 30, 2,
+        'هر هفته حداقل یک کار واقعی گزارش‌نویسی/تحلیل مالی را با AI انجام می‌دهم',
+        'از همین هفته اول شروع می‌شود، نه بعد از فاز ۲'),
+    ]
+  };
+  return goal;
+}
+
+async function seedAIRoadmapIfNeeded(){
+  const done = await safeGet(AI_SEED_FLAG, false);
+  if(done) return;
+  const existingIds = new Set(state.habits.map(h=>h.id));
+  DEFAULT_AI_HABITS.forEach(h=>{ if(!existingIds.has(h.id)) state.habits.push(h); });
+  // اگر نسخه قدیمی‌تر مسیر AI قبلاً کاشته شده بود، با نسخه بازنگری‌شده جایگزینش می‌کنیم
+  state.goals = state.goals.filter(g=>!(g.id && g.id.indexOf('g_ai_roadmap_')===0));
+  state.goals.push(buildAIGoal());
+  await safeSet('habits', state.habits);
+  await safeSet('goals', state.goals);
+  await safeSet(AI_SEED_FLAG, true);
+}
+
+async function loadAll(){
+  state.habits = await safeGet('habits', null);
+  if(!state.habits){ state.habits = DEFAULT_HABITS; await safeSet('habits', state.habits); }
+  state.habits.forEach(h=>{ if(!h.cat) h.cat='routine'; });
+  state.sessions = await safeGet('sessions', []);
+  state.goals = await safeGet('goals', []);
+  state.goals.forEach(g=>{ if(!g.subGoals) g.subGoals=[]; if(!g.createdAt) g.createdAt = g.date || todayStr(); g.subGoals.forEach(sg=>{ if(!sg.requiredHabits) sg.requiredHabits=[]; if(!sg.tasks) sg.tasks=[]; }); });
+
+  await seedAIRoadmapIfNeeded();
+  await seedTradingHabitsIfNeeded();
+
+  const dailyKeys = await safeList('daily:');
+  for(const k of dailyKeys){ const d = k.slice('daily:'.length); const rec = await safeGet(k, null); if(rec) state.daily[d] = rec; }
+  { const tmrw = tomorrowStr(); if(!state.daily[tmrw]){ const remoteT = await safeGet('daily:'+tmrw, null); if(remoteT) state.daily[tmrw] = remoteT; } }
+  state.events = await safeGet('events', []);
+  state.finance.transactions = await safeGet('finance:transactions', []);
+  state.finance.budgets = await safeGet('finance:budgets', {});
+  state.finance.savingsGoals = await safeGet('finance:savingsGoals', []);
+  state.finance.categories = await safeGet('finance:categories', null);
+  if(!state.finance.categories){ state.finance.categories = DEFAULT_FINANCE_CATS; await safeSet('finance:categories', state.finance.categories); }
+
+  fillCatSelect(document.getElementById('newHabitCat'));
+  fillCatSelect(document.getElementById('g_cat'));
+  fillCatSelect(document.getElementById('newPriorityCat'));
+  fillTimeLogCatSelect(document.getElementById('tl_cat'));
+  fillCatSelect(document.getElementById('newEventCat'));
+  fillEventFilterSelect();
+  document.getElementById('newEventDate').value = todayStr();
+  fillFinanceCatSelect();
+  document.getElementById('fin_date').value = todayStr();
+
+  await renderBackupReminder();
+  renderAll();
+}
+
+function getToday(){
+  const d = state.daily[todayStr()] || (state.daily[todayStr()]={habits:{},selfTalk:5,affirmation:'',visDone:false,preTrade:{}});
+  if(!d.priorities || !Array.isArray(d.priorities)) d.priorities = [];
+  if(!d.eveningReview) d.eveningReview = {adherence:5, win:'', improve:''};
+  if(!d.timeLog) d.timeLog = [];
+  return d;
+}
+
+function getDayRecord(dateStr){
+  const d = state.daily[dateStr] || (state.daily[dateStr]={habits:{},selfTalk:5,affirmation:'',visDone:false,preTrade:{}});
+  if(!d.priorities || !Array.isArray(d.priorities)) d.priorities = [];
+  if(!d.eveningReview) d.eveningReview = {adherence:5, win:'', improve:''};
+  if(!d.timeLog) d.timeLog = [];
+  return d;
+}
+
+function renderAll(){
+  renderDashHabits();
+  renderDashPriorities();
+  renderDashTomorrowPriorities();
+  renderTimeLog();
+  renderWeekPlan();
+  renderHabitManage();
+  renderMindToday();
+  renderSessions();
+  renderGoals();
+  renderGoalsProgress();
+  renderAffirmationHistory();
+  renderSignature();
+  renderAnalytics();
+  renderReview();
+}
+
+/* ---------- Habits (grouped by category) ---------- */
+function habitScoreForDay(dateStr, rec, catKey){
+  let list = catKey? state.habits.filter(h=>h.cat===catKey) : state.habits;
+  list = list.filter(h=>habitApplicableOnDate(h, dateStr));
+  if(!rec || list.length===0) return null;
+  const done = list.filter(h=>rec.habits && rec.habits[h.id]).length;
+  return done/list.length;
+}
+
+function renderDashHabits(){
+  const t = getToday();
+  const today = todayStr();
+  const box = document.getElementById('dashHabitList');
+  box.innerHTML = '';
+  const visibleHabits = state.habits.filter(h=>habitApplicableOnDate(h, today));
+  if(visibleHabits.length===0){ box.innerHTML = '<div class="empty">برای امروز عادتی در چک‌لیست نیست.</div>'; return; }
+  CATS.forEach(c=>{
+    const list = visibleHabits.filter(h=>h.cat===c.key);
+    if(list.length===0) return;
+    const group = document.createElement('div'); group.className='cat-group';
+    group.innerHTML = `<div class="cat-heading"><span class="cat-dot" style="background:${c.color}"></span>${c.label}</div>`;
+    list.forEach(h=>{
+      const row = document.createElement('div'); row.className='habit-row';
+      const checked = t.habits[h.id] ? 'checked' : '';
+      const linkTag = h.linkedGoal? '<span class="task-freq-tag">از هدف</span>':'';
+      row.innerHTML = `<input type="checkbox" id="dh_${h.id}" ${checked}><label for="dh_${h.id}">${h.name} ${linkTag}</label>`;
+      row.querySelector('input').addEventListener('change', async (e)=>{
+        t.habits[h.id] = e.target.checked;
+        await safeSet('daily:'+todayStr(), t);
+        renderSignature(); renderAnalytics();
+      });
+      group.appendChild(row);
+    });
+    box.appendChild(group);
+  });
+}
+
+const DOW_LABELS = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+function daysTagFor(h){
+  if(!h.days || !Array.isArray(h.days) || h.days.length===0) return '';
+  return `<span class="task-freq-tag">${h.days.map(d=>DOW_LABELS[d]).join('،')}</span>`;
+}
+
+function renderHabitManage(){
+  const box = document.getElementById('habitManageList');
+  box.innerHTML='';
+  if(state.habits.length===0){ box.innerHTML = '<div class="empty">هنوز عادتی نداری.</div>'; return; }
+  CATS.forEach(c=>{
+    const list = state.habits.filter(h=>h.cat===c.key);
+    if(list.length===0) return;
+    const group = document.createElement('div'); group.className='cat-group';
+    group.innerHTML = `<div class="cat-heading"><span class="cat-dot" style="background:${c.color}"></span>${c.label}</div>`;
+    list.forEach(h=>{
+      const row = document.createElement('div'); row.className='habit-row';
+      const linkTag = h.linkedGoal? '<span class="task-freq-tag">از هدف</span>':'';
+      row.innerHTML = `<label style="flex:1;">${h.name} ${linkTag} ${daysTagFor(h)}</label><span class="del" data-id="${h.id}">حذف</span>`;
+      row.querySelector('.del').addEventListener('click', async ()=>{
+        state.habits = state.habits.filter(x=>x.id!==h.id);
+        if(h.linkedGoal){
+          const g = state.goals.find(x=>x.id===h.linkedGoal);
+          const sg = g && g.subGoals.find(x=>x.id===h.linkedSubGoal);
+          if(sg) sg.requiredHabits = (sg.requiredHabits||[]).filter(rh=>rh.habitId!==h.id);
+          await safeSet('goals', state.goals);
+          renderGoals();
+        }
+        await safeSet('habits', state.habits);
+        renderHabitManage(); renderDashHabits(); renderAnalytics();
+      });
+      group.appendChild(row);
+    });
+    box.appendChild(group);
+  });
+}
+
+async function addHabit(){
+  const input = document.getElementById('newHabitInput');
+  const name = input.value.trim();
+  if(!name) return;
+  const cat = document.getElementById('newHabitCat').value;
+  state.habits.push({id:'h'+Date.now(), name, cat});
+  await safeSet('habits', state.habits);
+  input.value='';
+  renderHabitManage(); renderDashHabits(); renderAnalytics();
+}
+
+/* ---------- Mind / self-image ---------- */
+function renderMindToday(){
+  const t = getToday();
+  document.getElementById('selfTalkRange').value = t.selfTalk || 5;
+  document.getElementById('selfTalkVal').textContent = t.selfTalk || 5;
+  document.getElementById('affirmationInput').value = t.affirmation || '';
+  document.getElementById('visDone').checked = !!t.visDone;
+}
+document.getElementById('selfTalkRange').addEventListener('input', e=>{ document.getElementById('selfTalkVal').textContent = e.target.value; });
+
+async function saveMindToday(){
+  const t = getToday();
+  t.selfTalk = parseInt(document.getElementById('selfTalkRange').value,10);
+  t.affirmation = document.getElementById('affirmationInput').value;
+  t.visDone = document.getElementById('visDone').checked;
+  await safeSet('daily:'+todayStr(), t);
+  renderAffirmationHistory(); renderSignature(); renderAnalytics();
+  flashSaved();
+}
+
+function renderAffirmationHistory(){
+  const box = document.getElementById('affirmationHistory');
+  const entries = Object.entries(state.daily).filter(([d,r])=>r.affirmation && r.affirmation.trim()).sort((a,b)=> a[0]<b[0]?1:-1).slice(0,15);
+  if(entries.length===0){ box.innerHTML = '<div class="empty">هنوز جمله‌ای ثبت نشده.</div>'; return; }
+  box.innerHTML = entries.map(([d,r])=>`<div style="padding:8px 0;border-bottom:1px dashed var(--line);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold-dim);">${fmtFa(d)}</div>
+      <div style="font-size:13px;margin-top:2px;">${escapeHtml(r.affirmation)}</div>
+    </div>`).join('');
+}
+
+async function saveSelfImage(){ await safeSet('selfImageStatement', document.getElementById('selfImageStatement').value); flashSaved(); }
+async function saveMentalMovie(){ await safeSet('mentalMovie', document.getElementById('mentalMovie').value); flashSaved(); }
+(async ()=>{
+  document.getElementById('selfImageStatement').value = await safeGet('selfImageStatement','');
+  document.getElementById('mentalMovie').value = await safeGet('mentalMovie','');
+})();
+
+/* ---------- Dashboard: daily priorities (category + status) ---------- */
+function priorityRowHtml(p){
+  return `<div class="habit-row" data-pid="${p.id}">
+    <span class="cat-badge" style="color:${catColor(p.cat)};border-color:${catColor(p.cat)};flex-shrink:0;">${catLabel(p.cat)}</span>
+    <label class="${p.status==='done'?'done-text':''}" style="flex:1;">${escapeHtml(p.text)}</label>
+    <select class="pr-status" data-id="${p.id}" style="font-size:11px;padding:4px 6px;color:${statusColor(p.status)};"></select>
+    <span class="del pr-del" data-id="${p.id}">حذف</span>
+  </div>`;
+}
+function renderDashPriorities(){
+  const t = getToday();
+  const box = document.getElementById('dashPriorityList');
+  if(t.priorities.length===0){ box.innerHTML = '<div class="empty">هنوز کاری برای امروز اضافه نکردی.</div>'; }
+  else{ box.innerHTML = t.priorities.map(priorityRowHtml).join(''); }
+  box.querySelectorAll('.pr-status').forEach(sel=>{
+    fillStatusSelect(sel);
+    const p = t.priorities.find(x=>x.id===sel.dataset.id);
+    sel.value = p.status||'pending';
+    sel.addEventListener('change', async ()=>{
+      p.status = sel.value;
+      await safeSet('daily:'+todayStr(), t);
+      renderDashPriorities(); renderSignature();
+    });
+  });
+  box.querySelectorAll('.pr-del').forEach(el=>el.addEventListener('click', async ()=>{
+    t.priorities = t.priorities.filter(x=>x.id!==el.dataset.id);
+    await safeSet('daily:'+todayStr(), t);
+    renderDashPriorities();
+  }));
+
+  document.getElementById('adherenceRange').value = t.eveningReview.adherence;
+  document.getElementById('adherenceVal').textContent = t.eveningReview.adherence;
+  document.getElementById('todayWin').value = t.eveningReview.win;
+  document.getElementById('todayImprove').value = t.eveningReview.improve;
+}
+document.getElementById('adherenceRange').addEventListener('input', e=>{ document.getElementById('adherenceVal').textContent = e.target.value; });
+
+function tomorrowPriorityRowHtml(p){
+  return `<div class="habit-row" data-pid="${p.id}">
+    <span class="cat-badge" style="color:${catColor(p.cat)};border-color:${catColor(p.cat)};flex-shrink:0;">${catLabel(p.cat)}</span>
+    <label style="flex:1;">${escapeHtml(p.text)}</label>
+    <span class="del pr-del-tmrw" data-id="${p.id}">حذف</span>
+  </div>`;
+}
+function renderDashTomorrowPriorities(){
+  const tmrwKey = tomorrowStr();
+  const rec = state.daily[tmrwKey];
+  const box = document.getElementById('dashTomorrowPriorityList');
+  const list = (rec && rec.priorities) ? rec.priorities : [];
+  if(list.length===0){ box.innerHTML = '<div class="empty">هنوز کاری برای فردا از قبل نچیدی.</div>'; return; }
+  box.innerHTML = list.map(tomorrowPriorityRowHtml).join('');
+  box.querySelectorAll('.pr-del-tmrw').forEach(el=>el.addEventListener('click', async ()=>{
+    rec.priorities = rec.priorities.filter(x=>x.id!==el.dataset.id);
+    await safeSet('daily:'+tmrwKey, rec);
+    renderDashTomorrowPriorities();
+  }));
+}
+
+async function addPriorityItem(){
+  const textInput = document.getElementById('newPriorityText');
+  const text = textInput.value.trim();
+  if(!text) return;
+  const cat = document.getElementById('newPriorityCat').value;
+  const when = document.getElementById('newPriorityDay').value;
+  if(when === 'tomorrow'){
+    const tmrwKey = tomorrowStr();
+    const rec = getDayRecord(tmrwKey);
+    rec.priorities.push({id:'p'+Date.now(), text, cat, status:'pending'});
+    await safeSet('daily:'+tmrwKey, rec);
+    textInput.value='';
+    renderDashTomorrowPriorities();
+  } else {
+    const t = getToday();
+    t.priorities.push({id:'p'+Date.now(), text, cat, status:'pending'});
+    await safeSet('daily:'+todayStr(), t);
+    textInput.value='';
+    renderDashPriorities(); renderSignature();
+  }
+}
+
+async function saveEveningReview(){
+  const t = getToday();
+  t.eveningReview = {
+    adherence: parseInt(document.getElementById('adherenceRange').value,10),
+    win: document.getElementById('todayWin').value,
+    improve: document.getElementById('todayImprove').value,
+  };
+  await safeSet('daily:'+todayStr(), t);
+  flashSaved();
+}
+
+/* ---------- Dashboard: time log ---------- */
+function renderTimeLog(){
+  const t = getToday();
+  const tbody = document.querySelector('#timeLogTable tbody');
+  const sorted = [...t.timeLog].sort((a,b)=> (a.start||'').localeCompare(b.start||''));
+  document.getElementById('timeLogEmpty').style.display = sorted.length? 'none':'block';
+  tbody.innerHTML = sorted.map(e=>`<tr data-id="${e.id}">
+      <td>${e.start||'—'}</td><td>${e.end||'—'}</td>
+      <td style="font-family:'Vazirmatn',sans-serif;">${escapeHtml(e.activity)}</td>
+      <td><span class="cat-badge" style="color:${tlCatColor(e.cat)};border-color:${tlCatColor(e.cat)}">${tlCatLabel(e.cat)}</span></td>
+      <td><span class="del tl-del" data-id="${e.id}" style="color:var(--brick);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;">حذف</span></td>
+    </tr>`).join('');
+  tbody.querySelectorAll('.tl-del').forEach(el=>el.addEventListener('click', async ()=>{
+    t.timeLog = t.timeLog.filter(x=>x.id!==el.dataset.id);
+    await safeSet('daily:'+todayStr(), t);
+    renderTimeLog();
+  }));
+}
+async function addTimeLogEntry(){
+  const activity = document.getElementById('tl_activity').value.trim();
+  if(!activity) return;
+  const t = getToday();
+  t.timeLog.push({
+    id:'tl'+Date.now(),
+    start: document.getElementById('tl_start').value,
+    end: document.getElementById('tl_end').value,
+    activity, cat: document.getElementById('tl_cat').value,
+  });
+  await safeSet('daily:'+todayStr(), t);
+  document.getElementById('tl_activity').value='';
+  document.getElementById('tl_start').value='';
+  document.getElementById('tl_end').value='';
+  renderTimeLog();
+}
+
+function getWeekKey(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = (day===0? -6 : 1-day);
+  const monday = new Date(date); monday.setDate(date.getDate()+diff);
+  return monday.toISOString().slice(0,10);
+}
+function getMonthKey(d){ return new Date(d).toISOString().slice(0,7); }
+function weekPlanKey(){ return 'weekplan:'+getWeekKey(new Date()); }
+let weekPlanItems = [];
+let weekPlanLoadedKey = null;
+
+function weekDaysCurrent(){
+  const start = new Date(getWeekKey(new Date()));
+  const days=[]; for(let i=0;i<7;i++){ const d=new Date(start); d.setDate(start.getDate()+i); days.push(d.toISOString().slice(0,10)); }
+  return days;
+}
+
+function renderWeeklyExecution(){
+  const box = document.getElementById('weeklyExecutionList');
+  if(!box) return;
+  const days = weekDaysCurrent();
+  const items = [];
+  state.goals.forEach(g=>(g.subGoals||[]).forEach(sg=>(sg.tasks||[]).forEach(t=>{
+    if(t.due && days.includes(t.due)) items.push({g,sg,t});
+  })));
+  if(items.length===0){ box.innerHTML = '<div class="empty">وظیفه‌ای با سررسید این هفته در اهداف نداری.</div>'; return; }
+  items.sort((a,b)=> a.t.due.localeCompare(b.t.due));
+  box.innerHTML = items.map(({g,sg,t})=>{
+    const isRoutine = t.freq==='routine';
+    const checked = isRoutine? (t.doneDates||[]).includes(todayStr()) : !!t.done;
+    return `<div class="habit-row">
+      <input type="checkbox" class="weekexec-check" data-goal="${g.id}" data-sub="${sg.id}" data-task="${t.id}" ${checked?'checked':''}>
+      <span class="cat-badge" style="color:${catColor(g.cat)};border-color:${catColor(g.cat)};flex-shrink:0;">${catLabel(g.cat)}</span>
+      <label class="${(!isRoutine&&t.done)?'done-text':''}" style="flex:1;">${escapeHtml(g.title)} › ${escapeHtml(sg.title)}: ${escapeHtml(t.text)}</label>
+      <span class="routine-counter">تا ${fmtFa(t.due)}</span>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.weekexec-check').forEach(el=>el.addEventListener('change', async ()=>{
+    await toggleSubtaskDone(el.dataset.goal, el.dataset.sub, el.dataset.task, el.checked);
+    renderWeeklyExecution();
+  }));
+}
+
+async function renderWeekPlan(){
+  renderWeeklyExecution();
+  if(weekPlanLoadedKey !== weekPlanKey()){
+    const raw = await safeGet(weekPlanKey(), []);
+    weekPlanItems = Array.isArray(raw)? raw : [];
+    weekPlanLoadedKey = weekPlanKey();
+  }
+  renderWeekPlanBox();
+}
+
+function renderWeekPlanBox(){
+  const box = document.getElementById('weekPlanCats');
+  box.innerHTML = CATS.map(c=>{
+    const list = weekPlanItems.filter(it=>it.cat===c.key);
+    const rows = list.map(it=>`<div class="habit-row" data-id="${it.id}">
+        <label class="${it.status==='done'?'done-text':''}" style="flex:1;">${escapeHtml(it.text)}</label>
+        <select class="wk-status" data-id="${it.id}" style="font-size:11px;padding:4px 6px;color:${statusColor(it.status)};"></select>
+        <span class="del wk-del" data-id="${it.id}">حذف</span>
+      </div>`).join('');
+    return `<div class="card" style="margin-bottom:14px;">
+      <h3 style="display:flex;align-items:center;gap:8px;color:${c.color};"><span class="cat-dot" style="background:${c.color};"></span>${c.label}</h3>
+      ${rows || '<div class="empty">موردی برای این هفته ثبت نشده.</div>'}
+      <div class="add-row">
+        <input type="text" class="new-wk-text" data-cat="${c.key}" placeholder="مورد جدید در «${c.label}»…">
+        <button class="btn small add-wk-btn" data-cat="${c.key}">افزودن</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('.wk-status').forEach(sel=>{
+    fillStatusSelect(sel);
+    const it = weekPlanItems.find(x=>x.id===sel.dataset.id);
+    sel.value = it.status||'pending';
+    sel.addEventListener('change', async ()=>{
+      it.status = sel.value;
+      renderWeekPlanBox();
+      await safeSet(weekPlanKey(), weekPlanItems);
+    });
+  });
+  box.querySelectorAll('.wk-del').forEach(el=>el.addEventListener('click', async ()=>{
+    weekPlanItems = weekPlanItems.filter(x=>x.id!==el.dataset.id);
+    renderWeekPlanBox();
+    await safeSet(weekPlanKey(), weekPlanItems);
+  }));
+  box.querySelectorAll('.add-wk-btn').forEach(el=>el.addEventListener('click', async ()=>{
+    const cat = el.dataset.cat;
+    const input = box.querySelector(`.new-wk-text[data-cat="${cat}"]`);
+    const text = input.value.trim();
+    if(!text) return;
+    weekPlanItems.push({id:'wk'+Date.now(), cat, text, status:'pending'});
+    renderWeekPlanBox();
+    await safeSet(weekPlanKey(), weekPlanItems);
+  }));
+}
+
+/* ---------- Trading psychology (no numeric trade data) ---------- */
+async function savePreTrade(){
+  const t = getToday();
+  t.preTrade = {
+    chk1: document.getElementById('chk1').checked, chk2: document.getElementById('chk2').checked,
+    chk3: document.getElementById('chk3').checked, chk4: document.getElementById('chk4').checked,
+    chk5: document.getElementById('chk5').checked, chk6: document.getElementById('chk6').checked,
+    chk7: document.getElementById('chk7').checked, chk8: document.getElementById('chk8').checked,
+  };
+  await safeSet('daily:'+todayStr(), t);
+  flashSaved();
+}
+(function initPreTrade(){
+  setTimeout(()=>{
+    const t = getToday();
+    if(t.preTrade){
+      ['chk1','chk2','chk3','chk4','chk5','chk6','chk7','chk8'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.checked = !!t.preTrade[id];
+      });
+    }
+  },300);
+})();
+document.getElementById('s_date').value = todayStr();
+
+async function addSession(){
+  const session = {
+    id:'s'+Date.now(), date: document.getElementById('s_date').value || todayStr(),
+    plan: document.getElementById('s_plan').value,
+    emoBefore: document.getElementById('s_emo_before').value,
+    emoAfter: document.getElementById('s_emo_after').value,
+    note: document.getElementById('s_note').value,
+  };
+  state.sessions.push(session);
+  await safeSet('sessions', state.sessions);
+  document.getElementById('s_note').value='';
+  renderSessions(); renderAnalytics();
+}
+
+function renderSessions(){
+  const tbody = document.querySelector('#sessionTable tbody');
+  tbody.innerHTML='';
+  const sorted = [...state.sessions].sort((a,b)=> a.date<b.date?1:-1);
+  document.getElementById('sessionEmpty').style.display = sorted.length? 'none':'block';
+  sorted.forEach(s=>{
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${fmtFa(s.date)}</td><td><span class="tag">${s.plan}</span></td><td>${s.emoBefore}</td><td>${s.emoAfter}</td>
+      <td style="white-space:normal;max-width:280px;font-family:'Vazirmatn',sans-serif;">${escapeHtml(s.note||'')}</td>
+      <td><span class="del" style="color:var(--brick);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;">حذف</span></td>`;
+    row.querySelector('.del').addEventListener('click', async ()=>{
+      state.sessions = state.sessions.filter(x=>x.id!==s.id);
+      await safeSet('sessions', state.sessions);
+      renderSessions(); renderAnalytics();
+    });
+    tbody.appendChild(row);
+  });
+}
+
+/* ---------- Goals: sub-goals (weighted) + tasks (once / routine) ---------- */
+function subGoalProgress(sg){
+  const tasks = sg.tasks||[];
+  if(tasks.length===0) return 0;
+  const vals = tasks.map(t=>{
+    if(t.freq==='routine'){ const target=t.target||1; return Math.min(1, (t.doneDates||[]).length/target); }
+    return t.done? 1:0;
+  });
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+function goalProgress(g){
+  const subs = g.subGoals||[];
+  if(subs.length===0) return 0;
+  const totalWeight = subs.reduce((a,b)=>a+(Number(b.weight)||0),0) || 1;
+  return subs.reduce((a,sg)=> a + (Number(sg.weight)||0)/totalWeight * subGoalProgress(sg), 0);
+}
+function goalTimeProgress(g){
+  if(!g.date || !g.createdAt) return null;
+  const start = new Date(g.createdAt), end = new Date(g.date), now = new Date();
+  if(end<=start) return null;
+  return Math.max(0, Math.min(1, (now-start)/(end-start)));
+}
+
+async function addGoal(){
+  const title = document.getElementById('g_title').value.trim();
+  if(!title) return;
+  const goal = {
+    id:'g'+Date.now(), title, cat: document.getElementById('g_cat').value,
+    date: document.getElementById('g_date').value, desc: document.getElementById('g_desc').value,
+    createdAt: todayStr(), subGoals: [],
+  };
+  state.goals.push(goal);
+  await safeSet('goals', state.goals);
+  ['g_title','g_date','g_desc'].forEach(id=>document.getElementById(id).value='');
+  renderGoals(); renderGoalsProgress();
+}
+
+function taskRowHtml(goalId, sgId, t){
+  const isRoutine = t.freq==='routine';
+  const target = t.target||7;
+  const count = (t.doneDates||[]).length;
+  const checked = isRoutine ? (t.doneDates||[]).includes(todayStr()) : !!t.done;
+  return `<div class="habit-row" style="padding:5px 0;">
+    <input type="checkbox" class="subtask-check" data-goal="${goalId}" data-sub="${sgId}" data-task="${t.id}" ${checked?'checked':''}>
+    <label class="${(!isRoutine&&t.done)?'done-text':''}" style="font-size:13px;">${escapeHtml(t.text)} ${isRoutine?`<span class="task-freq-tag">روتین</span><span class="routine-counter">${toFaDigits(count)}/${toFaDigits(target)}</span>`:''}${t.due?`<span class="routine-counter">تا ${fmtFa(t.due)}</span>`:''}</label>
+    <span class="del subtask-del" data-goal="${goalId}" data-sub="${sgId}" data-task="${t.id}">حذف</span>
+  </div>`;
+}
+
+function reqHabitRowHtml(g, sg, rh){
+  return `<div class="habit-row" style="padding:4px 0;">
+    <span class="task-freq-tag">از هدف متصل</span>
+    <label style="flex:1;font-size:12.5px;">${escapeHtml(rh.name)}</label>
+    <span class="del reqhabit-del" data-goal="${g.id}" data-sub="${sg.id}" data-rh="${rh.id}">حذف</span>
+  </div>`;
+}
+
+function subGoalHtml(g, sg){
+  const prog = Math.round(subGoalProgress(sg)*100);
+  const tasks = sg.tasks||[];
+  const reqHabits = sg.requiredHabits||[];
+  return `<div class="subgoal-card">
+    <div class="subgoal-head">
+      <div class="subgoal-title">${escapeHtml(sg.title)} <span class="subgoal-weight">(${toFaDigits(sg.weight||0)}٪ از هدف)</span></div>
+      <span class="del subgoal-del" data-goal="${g.id}" data-sub="${sg.id}" style="color:var(--brick);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;">حذف زیرهدف</span>
+    </div>
+    <div class="mini-progress"><div class="mini-progress-fill" style="width:${prog}%;"></div></div>
+    <div style="font-size:10.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-bottom:4px;">برنامه اجرایی (وظایف با تاریخ)</div>
+    ${tasks.map(t=>taskRowHtml(g.id, sg.id, t)).join('') || '<div style="font-size:12px;color:var(--ink-dim);">وظیفه‌ای ندارد.</div>'}
+    <div class="add-task-row2">
+      <input type="text" class="new-subtask-text" data-goal="${g.id}" data-sub="${sg.id}" placeholder="وظیفه جدید…">
+      <select class="new-subtask-freq" data-goal="${g.id}" data-sub="${sg.id}">
+        <option value="once">یک‌باره</option>
+        <option value="routine">روتین (چند روزه)</option>
+      </select>
+      <input type="number" class="new-subtask-target" data-goal="${g.id}" data-sub="${sg.id}" value="7" style="width:90px;" title="هدف تعداد دفعات (برای روتین)">
+      <input type="date" class="new-subtask-due" data-goal="${g.id}" data-sub="${sg.id}" style="width:130px;" title="تاریخ مشخص انجام">
+      <button class="btn small add-subtask-btn" data-goal="${g.id}" data-sub="${sg.id}">افزودن وظیفه</button>
+    </div>
+    <div style="font-size:10.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin:10px 0 4px;border-top:1px dashed var(--line);padding-top:8px;">عادت‌های مورد نیاز (خودکار به لیست عادت‌های روزانه اضافه می‌شود)</div>
+    ${reqHabits.map(rh=>reqHabitRowHtml(g,sg,rh)).join('') || '<div style="font-size:12px;color:var(--ink-dim);">عادتی متصل نشده.</div>'}
+    <div class="add-task-row2">
+      <input type="text" class="new-reqhabit-text" data-goal="${g.id}" data-sub="${sg.id}" placeholder="عادت مورد نیاز جدید…">
+      <button class="btn small add-reqhabit-btn" data-goal="${g.id}" data-sub="${sg.id}">افزودن و اتصال به عادت‌ها</button>
+    </div>
+  </div>`;
+}
+
+function goalCardHtml(g){
+  const subs = g.subGoals||[];
+  const overallPct = Math.round(goalProgress(g)*100);
+  const weightSum = subs.reduce((a,b)=>a+(Number(b.weight)||0),0);
+  return `<div class="goal-card" style="border-right-color:${catColor(g.cat)}">
+    <div class="cat-badge" style="color:${catColor(g.cat)};border-color:${catColor(g.cat)}">${catLabel(g.cat)}</div>
+    <h4>${escapeHtml(g.title)}</h4>
+    ${g.date? `<div style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-top:2px;">تا ${fmtFa(g.date)}</div>`:''}
+    <p>${escapeHtml(g.desc||'')}</p>
+    <div class="goal-progress"><div class="goal-progress-fill" style="width:${overallPct}%;"></div></div>
+    <div style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;">پیشرفت کلی: ${toFaDigits(overallPct)}٪${subs.length && weightSum!==100? ' · مجموع وزن زیرهدف‌ها '+toFaDigits(weightSum)+'٪ (بهتره ۱۰۰٪ باشه)':''}</div>
+    <div class="goal-tasks">
+      ${subs.map(sg=>subGoalHtml(g,sg)).join('') || '<div style="font-size:12px;color:var(--ink-dim);">هنوز زیرهدفی نداری.</div>'}
+      <div class="add-subgoal-row">
+        <input type="text" class="new-subgoal-title" data-goal="${g.id}" placeholder="زیرهدف جدید…">
+        <input type="number" class="new-subgoal-weight" data-goal="${g.id}" value="10" style="width:80px;" title="وزن ٪ از هدف اصلی">
+        <button class="btn small add-subgoal-btn" data-goal="${g.id}">افزودن زیرهدف</button>
+      </div>
+    </div>
+    <span class="del goal-del" data-id="${g.id}" style="color:var(--brick);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;display:inline-block;margin-top:10px;">حذف هدف</span>
+  </div>`;
+}
+
+function renderGoals(){
+  const box = document.getElementById('goalList');
+  if(state.goals.length===0){ box.innerHTML = '<div class="empty">هنوز هدفی ثبت نشده.</div>'; return; }
+  box.innerHTML = CATS.map(c=>{
+    const list = state.goals.filter(g=>g.cat===c.key).slice().reverse();
+    if(list.length===0) return '';
+    return `<div class="cat-group"><div class="cat-heading"><span class="cat-dot" style="background:${c.color}"></span>${c.label}</div>${list.map(goalCardHtml).join('')}</div>`;
+  }).join('');
+
+  box.querySelectorAll('.goal-del').forEach(el=>el.addEventListener('click', async ()=>{
+    state.goals = state.goals.filter(x=>x.id!==el.dataset.id);
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress();
+  }));
+  box.querySelectorAll('.subgoal-del').forEach(el=>el.addEventListener('click', async ()=>{
+    const g = state.goals.find(x=>x.id===el.dataset.goal);
+    g.subGoals = g.subGoals.filter(x=>x.id!==el.dataset.sub);
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress();
+  }));
+  box.querySelectorAll('.subtask-del').forEach(el=>el.addEventListener('click', async ()=>{
+    const g = state.goals.find(x=>x.id===el.dataset.goal);
+    const sg = g.subGoals.find(x=>x.id===el.dataset.sub);
+    sg.tasks = sg.tasks.filter(x=>x.id!==el.dataset.task);
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress();
+  }));
+  box.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('change', async ()=>{
+    await toggleSubtaskDone(el.dataset.goal, el.dataset.sub, el.dataset.task, el.checked);
+  }));
+  box.querySelectorAll('.add-subgoal-btn').forEach(el=>el.addEventListener('click', async ()=>{
+    const goalId = el.dataset.goal;
+    const titleInput = box.querySelector(`.new-subgoal-title[data-goal="${goalId}"]`);
+    const weightInput = box.querySelector(`.new-subgoal-weight[data-goal="${goalId}"]`);
+    const title = titleInput.value.trim();
+    if(!title) return;
+    const g = state.goals.find(x=>x.id===goalId);
+    if(!g.subGoals) g.subGoals=[];
+    g.subGoals.push({id:'sg'+Date.now(), title, weight:Number(weightInput.value)||0, tasks:[], requiredHabits:[]});
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress();
+  }));
+  box.querySelectorAll('.add-subtask-btn').forEach(el=>el.addEventListener('click', async ()=>{
+    const goalId = el.dataset.goal, subId = el.dataset.sub;
+    const textInput = box.querySelector(`.new-subtask-text[data-goal="${goalId}"][data-sub="${subId}"]`);
+    const freqInput = box.querySelector(`.new-subtask-freq[data-goal="${goalId}"][data-sub="${subId}"]`);
+    const targetInput = box.querySelector(`.new-subtask-target[data-goal="${goalId}"][data-sub="${subId}"]`);
+    const dueInput = box.querySelector(`.new-subtask-due[data-goal="${goalId}"][data-sub="${subId}"]`);
+    const text = textInput.value.trim();
+    if(!text) return;
+    const g = state.goals.find(x=>x.id===goalId);
+    const sg = g.subGoals.find(x=>x.id===subId);
+    if(!sg.tasks) sg.tasks=[];
+    sg.tasks.push({id:'t'+Date.now(), text, freq:freqInput.value, target:Number(targetInput.value)||7, due:dueInput.value||'', done:false, doneDates:[]});
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress(); renderWeekPlan();
+  }));
+  box.querySelectorAll('.add-reqhabit-btn').forEach(el=>el.addEventListener('click', async ()=>{
+    const goalId = el.dataset.goal, subId = el.dataset.sub;
+    const textInput = box.querySelector(`.new-reqhabit-text[data-goal="${goalId}"][data-sub="${subId}"]`);
+    const name = textInput.value.trim();
+    if(!name) return;
+    const g = state.goals.find(x=>x.id===goalId);
+    const sg = g.subGoals.find(x=>x.id===subId);
+    if(!sg.requiredHabits) sg.requiredHabits=[];
+    const habitId = 'h'+Date.now();
+    state.habits.push({id:habitId, name, cat:g.cat, linkedGoal:g.id, linkedSubGoal:sg.id});
+    sg.requiredHabits.push({id:'rh'+Date.now(), habitId, name});
+    await safeSet('habits', state.habits);
+    await safeSet('goals', state.goals);
+    textInput.value='';
+    renderGoals(); renderGoalsProgress(); renderDashHabits(); renderHabitManage(); renderAnalytics();
+  }));
+  box.querySelectorAll('.reqhabit-del').forEach(el=>el.addEventListener('click', async ()=>{
+    const g = state.goals.find(x=>x.id===el.dataset.goal);
+    const sg = g.subGoals.find(x=>x.id===el.dataset.sub);
+    const rh = sg.requiredHabits.find(x=>x.id===el.dataset.rh);
+    sg.requiredHabits = sg.requiredHabits.filter(x=>x.id!==el.dataset.rh);
+    if(rh) state.habits = state.habits.filter(x=>x.id!==rh.habitId);
+    await safeSet('habits', state.habits);
+    await safeSet('goals', state.goals);
+    renderGoals(); renderGoalsProgress(); renderDashHabits(); renderHabitManage(); renderAnalytics();
+  }));
+}
+
+async function toggleSubtaskDone(goalId, subId, taskId, checked){
+  const g = state.goals.find(x=>x.id===goalId);
+  const sg = g.subGoals.find(x=>x.id===subId);
+  const t = sg.tasks.find(x=>x.id===taskId);
+  if(t.freq==='routine'){
+    t.doneDates = t.doneDates||[];
+    const idx = t.doneDates.indexOf(todayStr());
+    if(checked){ if(idx===-1) t.doneDates.push(todayStr()); }
+    else if(idx!==-1) t.doneDates.splice(idx,1);
+  } else { t.done = checked; }
+  await safeSet('goals', state.goals);
+  renderGoals(); renderGoalsProgress(); renderAnalytics(); renderWeekPlan();
+}
+
+function setGoalsView(view){
+  document.getElementById('toggleGoalsList').classList.toggle('active', view==='list');
+  document.getElementById('toggleGoalsProgress').classList.toggle('active', view==='progress');
+  document.getElementById('goalsListView').style.display = view==='list'? 'block':'none';
+  document.getElementById('goalsProgressView').style.display = view==='progress'? 'block':'none';
+  if(view==='progress') renderGoalsProgress();
+}
+
+function renderGoalsProgress(){
+  const box = document.getElementById('goalsProgressList');
+  if(!box) return;
+  if(state.goals.length===0){ box.innerHTML = '<div class="empty">هنوز هدفی ثبت نشده.</div>'; return; }
+  box.innerHTML = state.goals.map(g=>{
+    const progress = goalProgress(g);
+    const timeProg = goalTimeProgress(g);
+    const daysRemaining = g.date? Math.round((new Date(g.date)-new Date())/86400000) : null;
+    let color = 'var(--gold)', label = 'بدون تاریخ هدف';
+    if(timeProg!==null){
+      if(progress >= timeProg+0.1){ color='var(--teal)'; label='جلوتر از برنامه'; }
+      else if(progress <= timeProg-0.1){ color='var(--brick)'; label='عقب از برنامه'; }
+      else { color='var(--gold)'; label='هم‌راستا با برنامه'; }
+    }
+    return `<div class="progress-review-row">
+      <div class="pr-info">
+        <div class="cat-badge" style="color:${catColor(g.cat)};border-color:${catColor(g.cat)}">${catLabel(g.cat)}</div>
+        <div style="font-family:'Spectral',serif;font-size:15px;margin-top:4px;">${escapeHtml(g.title)}</div>
+        ${daysRemaining!==null? `<div style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;">${daysRemaining>=0? toFaDigits(daysRemaining)+' روز باقی‌مانده' : toFaDigits(Math.abs(daysRemaining))+' روز از موعد گذشته'}</div>`:''}
+      </div>
+      <div class="pr-bar-wrap">
+        <div class="pr-bar">
+          <div class="pr-bar-fill" style="width:${Math.round(progress*100)}%;background:${color};"></div>
+          ${timeProg!==null? `<div class="pr-time-marker" style="left:${Math.round(timeProg*100)}%;"></div>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-top:4px;">پیشرفت: ${toFaDigits(Math.round(progress*100))}٪${timeProg!==null? ' · زمان سپری‌شده: '+toFaDigits(Math.round(timeProg*100))+'٪':''}</div>
+      </div>
+      <span class="status-tag" style="background:${color}22;color:${color};border:1px solid ${color};">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Periodic review (weekly / monthly) + period-specific goals ---------- */
+let reviewMode = 'weekly';
+let periodGoalsLoadedKey = null;
+
+function setReviewMode(mode){
+  reviewMode = mode;
+  document.getElementById('toggleWeekly').classList.toggle('active', mode==='weekly');
+  document.getElementById('toggleMonthly').classList.toggle('active', mode==='monthly');
+  renderReview();
+}
+
+function periodRange(){
+  if(reviewMode==='weekly'){
+    const startDate = new Date(getWeekKey(new Date()));
+    const days=[]; for(let i=0;i<7;i++){ const d=new Date(startDate); d.setDate(startDate.getDate()+i); days.push(d.toISOString().slice(0,10)); }
+    return days;
+  }
+  const now = new Date(); const year=now.getFullYear(), month=now.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const days=[]; for(let i=1;i<=daysInMonth;i++){ days.push(new Date(year,month,i).toISOString().slice(0,10)); }
+  return days;
+}
+function currentReviewKey(){ return reviewMode==='weekly'? 'review:weekly:'+getWeekKey(new Date()) : 'review:monthly:'+getMonthKey(new Date()); }
+function periodGoalsKey(){ return reviewMode==='weekly'? 'periodgoals:weekly:'+getWeekKey(new Date()) : 'periodgoals:monthly:'+getMonthKey(new Date()); }
+
+async function renderPeriodGoals(){
+  if(periodGoalsLoadedKey !== periodGoalsKey()){
+    const list = await safeGet(periodGoalsKey(), []);
+    state._periodGoals = Array.isArray(list)? list : [];
+    periodGoalsLoadedKey = periodGoalsKey();
+  }
+  renderPeriodGoalsBox();
+}
+
+function renderPeriodGoalsBox(){
+  const list = state._periodGoals;
+  const box = document.getElementById('periodGoalList');
+  if(list.length===0){ box.innerHTML = '<div class="empty">هدفی برای این دوره ثبت نشده.</div>'; return; }
+  box.innerHTML = list.map(pg=>`<div class="habit-row">
+    <input type="checkbox" class="pg-check" data-id="${pg.id}" ${pg.done?'checked':''}>
+    <label class="${pg.done?'done-text':''}">${escapeHtml(pg.text)}</label>
+    <span class="del pg-del" data-id="${pg.id}">حذف</span>
+  </div>`).join('');
+  box.querySelectorAll('.pg-check').forEach(el=>el.addEventListener('change', async ()=>{
+    const pg = state._periodGoals.find(x=>x.id===el.dataset.id); pg.done = el.checked;
+    renderPeriodGoalsBox(); renderReviewStatsOnly();
+    await safeSet(periodGoalsKey(), state._periodGoals);
+  }));
+  box.querySelectorAll('.pg-del').forEach(el=>el.addEventListener('click', async ()=>{
+    state._periodGoals = state._periodGoals.filter(x=>x.id!==el.dataset.id);
+    renderPeriodGoalsBox(); renderReviewStatsOnly();
+    await safeSet(periodGoalsKey(), state._periodGoals);
+  }));
+}
+async function addPeriodGoal(){
+  const input = document.getElementById('newPeriodGoalInput');
+  const text = input.value.trim(); if(!text) return;
+  state._periodGoals.push({id:'pg'+Date.now(), text, done:false});
+  input.value='';
+  renderPeriodGoalsBox(); renderReviewStatsOnly();
+  await safeSet(periodGoalsKey(), state._periodGoals);
+}
+
+function renderReviewStatsOnly(){
+  const days = periodRange();
+  let habitSum=0, habitDaysCounted=0;
+  days.forEach(d=>{ if(state.daily[d]){ const s=habitScoreForDay(d, state.daily[d]); if(s!==null){ habitSum+=s; habitDaysCounted++; } } });
+  const avgHabit = habitDaysCounted? Math.round(100*habitSum/habitDaysCounted):0;
+  const periodSessions = state.sessions.filter(s=> days.includes(s.date));
+  const planYes = periodSessions.filter(s=>s.plan==='بله').length;
+  const planPct = periodSessions.length? Math.round(100*planYes/periodSessions.length):0;
+  const pgDone = state._periodGoals.filter(x=>x.done).length;
+  document.getElementById('reviewStatRow').innerHTML = `
+    <div class="stat"><div class="lbl">میانگین انجام عادت‌ها</div><div class="val">${toFaDigits(avgHabit)}٪</div></div>
+    <div class="stat"><div class="lbl">جلسات معامله‌گری</div><div class="val">${toFaDigits(periodSessions.length)}</div></div>
+    <div class="stat"><div class="lbl">پایبندی به پلن</div><div class="val">${toFaDigits(planPct)}٪</div></div>
+    <div class="stat"><div class="lbl">اهداف این دوره</div><div class="val">${toFaDigits(pgDone)}/${toFaDigits(state._periodGoals.length)}</div></div>
+  `;
+}
+
+async function renderReview(){
+  const days = periodRange();
+  document.getElementById('reviewPeriodLabel').textContent =
+    (reviewMode==='weekly'? 'این هفته ':'این ماه ') + '(' + fmtFa(days[0]) + ' تا ' + fmtFa(days[days.length-1]) + ')';
+
+  await renderPeriodGoals();
+  renderReviewStatsOnly();
+
+  const existing = await safeGet(currentReviewKey(), null);
+  document.getElementById('reviewRating').value = existing? existing.rating : 5;
+  document.getElementById('reviewRatingVal').textContent = existing? existing.rating : 5;
+  document.getElementById('reviewWin').value = existing? existing.win : '';
+  document.getElementById('reviewChallenge').value = existing? existing.challenge : '';
+  document.getElementById('reviewAdjust').value = existing? existing.adjust : '';
+
+  renderReviewHistory();
+}
+document.getElementById('reviewRating').addEventListener('input', e=>{ document.getElementById('reviewRatingVal').textContent = e.target.value; });
+
+async function saveReview(){
+  const data = {
+    rating: parseInt(document.getElementById('reviewRating').value,10),
+    win: document.getElementById('reviewWin').value,
+    challenge: document.getElementById('reviewChallenge').value,
+    adjust: document.getElementById('reviewAdjust').value,
+    mode: reviewMode, savedAt: todayStr(),
+  };
+  await safeSet(currentReviewKey(), data);
+  flashSaved();
+  renderReviewHistory();
+}
+
+async function renderReviewHistory(){
+  const box = document.getElementById('reviewHistory');
+  let keys = [];
+  try{
+    const wkKeys = await safeList('review:weekly:');
+    const moKeys = await safeList('review:monthly:');
+    keys = [...wkKeys, ...moKeys];
+  }catch(e){ keys=[]; }
+  if(keys.length===0){ box.innerHTML = '<div class="empty">هنوز مروری ثبت نشده.</div>'; return; }
+  const items = [];
+  for(const k of keys){ const r = await safeGet(k, null); if(r) items.push(r); }
+  items.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+  box.innerHTML = items.slice(0,20).map(it=>`
+    <div class="review-history-item">
+      <div class="period">${it.mode==='weekly'?'هفتگی':'ماهانه'} · ${fmtFa(it.savedAt)} <span class="rating">امتیاز: ${toFaDigits(it.rating)}</span></div>
+      ${it.win? `<div style="font-size:12.5px;margin-top:4px;"><b style="color:var(--gold);">موفقیت:</b> ${escapeHtml(it.win)}</div>`:''}
+      ${it.challenge? `<div style="font-size:12.5px;"><b style="color:var(--brick);">چالش:</b> ${escapeHtml(it.challenge)}</div>`:''}
+      ${it.adjust? `<div style="font-size:12.5px;"><b style="color:var(--teal);">تغییر بعدی:</b> ${escapeHtml(it.adjust)}</div>`:''}
+    </div>`).join('');
+}
+
+/* ---------- Signature compound curve (overall) ---------- */
+function renderSignature(){
+  const canvas = document.getElementById('curveCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const w = canvas.clientWidth||600, h = 120;
+  canvas.width = w*dpr; canvas.height=h*dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+
+  const days=[]; for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  let cum=0; const pts = days.map(d=>{ const s=habitScoreForDay(d, state.daily[d]); cum += (s||0); return cum; });
+  const max = Math.max(...pts, 1);
+
+  ctx.strokeStyle = '#2A323D'; ctx.lineWidth=1;
+  for(let i=1;i<4;i++){ const y=h-(h*i/4); ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const x = (i/(pts.length-1))*(w-10)+5;
+    const y = h - 10 - (p/max)*(h-20);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#C9A15C'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+
+  ctx.lineTo(w-5,h); ctx.lineTo(5,h); ctx.closePath();
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(201,161,92,0.25)'); grad.addColorStop(1,'rgba(201,161,92,0)');
+  ctx.fillStyle = grad; ctx.fill();
+
+  let streak=0;
+  for(let i=0;i<days.length;i++){
+    const d = days[days.length-1-i];
+    const s = habitScoreForDay(d, state.daily[d]);
+    if(s!==null && s>=0.5) streak++; else break;
+  }
+  document.getElementById('streakNum').textContent = toFaDigits(streak);
+  document.getElementById('curveNote').textContent = 'مجموع پیوستگی ۳۰ روز اخیر: '+toFaDigits(pts[pts.length-1].toFixed(1));
+}
+
+/* ---------- Analytics ---------- */
+let charts = {};
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+
+function renderAnalytics(){
+  const planYes = state.sessions.filter(s=>s.plan==='بله').length;
+  const planPct = state.sessions.length? Math.round(100*planYes/state.sessions.length):0;
+  const avgSelfTalkVals = Object.values(state.daily).map(r=>r.selfTalk).filter(v=>typeof v==='number');
+  const avgSelfTalk = avgSelfTalkVals.length? (avgSelfTalkVals.reduce((a,b)=>a+b,0)/avgSelfTalkVals.length).toFixed(1) : '—';
+
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat"><div class="lbl">جلسات معامله‌گری ثبت‌شده</div><div class="val">${toFaDigits(state.sessions.length)}</div></div>
+    <div class="stat"><div class="lbl">پایبندی به پلن</div><div class="val">${toFaDigits(planPct)}٪</div></div>
+    <div class="stat"><div class="lbl">تعداد اهداف فعال</div><div class="val">${toFaDigits(state.goals.length)}</div></div>
+    <div class="stat"><div class="lbl">میانگین گفتگوی درونی</div><div class="val">${toFaDigits(avgSelfTalk)}</div></div>
+  `;
+
+  const days=[]; for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+
+  const stData = days.map(d=> state.daily[d]&&typeof state.daily[d].selfTalk==='number'? state.daily[d].selfTalk : null);
+  destroyChart('st');
+  charts.st = new Chart(document.getElementById('selfTalkChart'), {
+    type:'line', data:{ labels:days.map(fmtFa), datasets:[{ data:stData, borderColor:'#C9A15C', backgroundColor:'rgba(201,161,92,0.12)', fill:true, spanGaps:true, tension:0.3, pointRadius:1 }]},
+    options: chartOpts(10)
+  });
+
+  let hc=0; const hcData = days.map(d=>{ const s=habitScoreForDay(d, state.daily[d]); hc+= (s||0); return hc; });
+  destroyChart('hc');
+  charts.hc = new Chart(document.getElementById('compoundChart'), {
+    type:'line', data:{ labels:days.map(fmtFa), datasets:[{ data:hcData, borderColor:'#4F9490', backgroundColor:'rgba(79,148,144,0.12)', fill:true, tension:0.3, pointRadius:1 }]},
+    options: chartOpts()
+  });
+
+  const catData = CATS.map(c=>{
+    const vals = days.map(d=>habitScoreForDay(d, state.daily[d], c.key)).filter(v=>v!==null);
+    return vals.length? Math.round(100*vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+  });
+  destroyChart('cat');
+  charts.cat = new Chart(document.getElementById('catChart'), {
+    type:'bar', data:{ labels:CATS.map(c=>c.label), datasets:[{ data:catData, backgroundColor:['#C9A15C','#4F9490','#B27BA6','#7C93A8'] }]},
+    options: chartOpts(100)
+  });
+
+  const weekDays=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); weekDays.push(d.toISOString().slice(0,10)); }
+  const weekData = weekDays.map(d=>{ const s=habitScoreForDay(d, state.daily[d]); return Math.round((s||0)*100); });
+  destroyChart('wk');
+  const wkCanvas = document.getElementById('weeklyHabitChart');
+  if(wkCanvas){
+    charts.wk = new Chart(wkCanvas, { type:'bar', data:{ labels:weekDays.map(fmtFa), datasets:[{ data:weekData, backgroundColor:'#C9A15C' }]}, options: chartOpts(100) });
+  }
+}
+
+function chartOpts(suggestedMax){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{
+      x:{ ticks:{ color:'#8E97A1', font:{size:9}, maxRotation:0, autoSkip:true, maxTicksLimit:8 }, grid:{ color:'#2A323D' } },
+      y:{ ticks:{ color:'#8E97A1', font:{size:10} }, grid:{ color:'#2A323D' }, suggestedMax }
+    }
+  };
+}
+
+/* ---------- Utils ---------- */
+function toFaDigits(n){ const fa=['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹']; return String(n).replace(/[0-9]/g, d=>fa[d]); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function flashSaved(){
+  const note = document.getElementById('curveNote');
+  const old = note.textContent;
+  note.textContent = 'ذخیره شد ✓';
+  setTimeout(()=>{ note.textContent = old; }, 1200);
+}
+
+/* ---------- Trading Plan notes (persisted per textarea id) ---------- */
+(function initTradingPlanNotes(){
+  document.querySelectorAll('.tp-note').forEach(async (ta)=>{
+    const key = 'tpnote:'+ta.id;
+    const val = await safeGet(key, '');
+    if(val) ta.value = val;
+    let t;
+    ta.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{ safeSet(key, ta.value); }, 500);
+    });
+  });
+})();
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).style.display='block';
+    if(btn.dataset.tab==='review') renderReview();
+    if(btn.dataset.tab==='analytics') renderAnalytics();
+    if(btn.dataset.tab==='planning') renderWeekPlan();
+    if(btn.dataset.tab==='goals') renderGoalsProgress();
+    if(btn.dataset.tab==='lifelog') renderLifeEvents();
+    if(btn.dataset.tab==='finance') renderFinance();
+  });
+});
+
+loadAll();
+window.addEventListener('resize', ()=>renderSignature());
+</script>
+</body>
+</html>
